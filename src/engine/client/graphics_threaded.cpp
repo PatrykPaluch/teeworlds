@@ -130,7 +130,8 @@ CGraphics_Threaded::CGraphics_Threaded()
 	m_State.m_ClipH = 0;
 	m_State.m_Texture = -1;
 	m_State.m_BlendMode = CCommandBuffer::BLEND_NONE;
-	m_State.m_WrapMode = CCommandBuffer::WRAP_REPEAT;
+	m_State.m_WrapModeU = WRAP_REPEAT;
+	m_State.m_WrapModeV = WRAP_REPEAT;
 
 	m_CurrentCommandBuffer = 0;
 	m_pCommandBuffer = 0x0;
@@ -192,12 +193,20 @@ void CGraphics_Threaded::BlendAdditive()
 
 void CGraphics_Threaded::WrapNormal()
 {
-	m_State.m_WrapMode = CCommandBuffer::WRAP_REPEAT;
+	m_State.m_WrapModeU = IGraphics::WRAP_REPEAT;
+	m_State.m_WrapModeV = IGraphics::WRAP_REPEAT;
 }
 
 void CGraphics_Threaded::WrapClamp()
 {
-	m_State.m_WrapMode = CCommandBuffer::WRAP_CLAMP;
+	m_State.m_WrapModeU = WRAP_CLAMP;
+	m_State.m_WrapModeV = WRAP_CLAMP;
+}
+
+void CGraphics_Threaded::WrapMode(int WrapU, int WrapV)
+{
+	m_State.m_WrapModeU = WrapU;
+	m_State.m_WrapModeV = WrapV;
 }
 
 int CGraphics_Threaded::MemoryUsage() const
@@ -255,20 +264,22 @@ void CGraphics_Threaded::LinesDraw(const CLineItem *pArray, int Num)
 	AddVertices(2*Num);
 }
 
-int CGraphics_Threaded::UnloadTexture(CTextureHandle Index)
+int CGraphics_Threaded::UnloadTexture(CTextureHandle *Index)
 {
-	if(Index.Id() == m_InvalidTexture.Id())
+	if(Index->Id() == m_InvalidTexture.Id())
 		return 0;
 
-	if(!Index.IsValid())
+	if(!Index->IsValid())
 		return 0;
 
 	CCommandBuffer::SCommand_Texture_Destroy Cmd;
-	Cmd.m_Slot = Index.Id();
+	Cmd.m_Slot = Index->Id();
 	m_pCommandBuffer->AddCommand(Cmd);
 
-	m_aTextureIndices[Index.Id()] = m_FirstFreeTexture;
-	m_FirstFreeTexture = Index.Id();
+	m_aTextureIndices[Index->Id()] = m_FirstFreeTexture;
+	m_FirstFreeTexture = Index->Id();
+
+	Index->Invalidate();
 	return 0;
 }
 
@@ -415,7 +426,7 @@ int CGraphics_Threaded::LoadPNG(CImageInfo *pImg, const char *pFilename, int Sto
 		return 0;
 	}
 
-	if(Png.depth != 8 || (Png.color_type != PNG_TRUECOLOR && Png.color_type != PNG_TRUECOLOR_ALPHA)) // ignore_convention
+	if(Png.depth != 8 || (Png.color_type != PNG_TRUECOLOR && Png.color_type != PNG_TRUECOLOR_ALPHA) || Png.width > (2<<12) || Png.height > (2<<12)) // ignore_convention
 	{
 		dbg_msg("game/png", "invalid format. filename='%s'", aCompleteFilename);
 		png_close_file(&Png); // ignore_convention
@@ -454,6 +465,8 @@ void CGraphics_Threaded::ScreenshotDirect(const char *pFilename)
 
 	CCommandBuffer::SCommand_Screenshot Cmd;
 	Cmd.m_pImage = &Image;
+	Cmd.m_X = 0; Cmd.m_Y = 0;
+	Cmd.m_W = -1; Cmd.m_H = -1;
 	m_pCommandBuffer->AddCommand(Cmd);
 
 	// kick the buffer and wait for the result
@@ -698,18 +711,12 @@ void CGraphics_Threaded::QuadsText(float x, float y, float Size, const char *pTe
 int CGraphics_Threaded::IssueInit()
 {
 	int Flags = 0;
-	if(g_Config.m_GfxBorderless && g_Config.m_GfxFullscreen)
-	{
-		dbg_msg("gfx", "both borderless and fullscreen activated, disabling borderless");
-		g_Config.m_GfxBorderless = 0;
-	}
-
 	if(g_Config.m_GfxBorderless) Flags |= IGraphicsBackend::INITFLAG_BORDERLESS;
-	else if(g_Config.m_GfxFullscreen) Flags |= IGraphicsBackend::INITFLAG_FULLSCREEN;
+	if(g_Config.m_GfxFullscreen) Flags |= IGraphicsBackend::INITFLAG_FULLSCREEN;
 	if(g_Config.m_GfxVsync) Flags |= IGraphicsBackend::INITFLAG_VSYNC;
 	if(g_Config.m_DbgResizable) Flags |= IGraphicsBackend::INITFLAG_RESIZABLE;
 
-	return m_pBackend->Init("Teeworlds", &g_Config.m_GfxScreenWidth, &g_Config.m_GfxScreenHeight, g_Config.m_GfxFsaaSamples, Flags, &m_DesktopScreenWidth, &m_DesktopScreenHeight);
+	return m_pBackend->Init("Teeworlds", &g_Config.m_GfxScreen, &g_Config.m_GfxScreenWidth, &g_Config.m_GfxScreenHeight, g_Config.m_GfxFsaaSamples, Flags, &m_DesktopScreenWidth, &m_DesktopScreenHeight);
 }
 
 int CGraphics_Threaded::InitWindow()
@@ -830,6 +837,11 @@ void CGraphics_Threaded::Shutdown()
 		delete m_apCommandBuffers[i];
 }
 
+int CGraphics_Threaded::GetNumScreens() const
+{
+	return m_pBackend->GetNumScreens();
+}
+
 void CGraphics_Threaded::Minimize()
 {
 	m_pBackend->Minimize();
@@ -837,8 +849,27 @@ void CGraphics_Threaded::Minimize()
 
 void CGraphics_Threaded::Maximize()
 {
-	// TODO: SDL
 	m_pBackend->Maximize();
+}
+
+bool CGraphics_Threaded::Fullscreen(bool State)
+{
+	return m_pBackend->Fullscreen(State);
+}
+
+void CGraphics_Threaded::SetWindowBordered(bool State)
+{
+	m_pBackend->SetWindowBordered(State);
+}
+
+bool CGraphics_Threaded::SetWindowScreen(int Index)
+{
+	return m_pBackend->SetWindowScreen(Index);
+}
+
+int CGraphics_Threaded::GetWindowScreen()
+{
+	return m_pBackend->GetWindowScreen();
 }
 
 int CGraphics_Threaded::WindowActive()
@@ -850,6 +881,28 @@ int CGraphics_Threaded::WindowOpen()
 {
 	return m_pBackend->WindowOpen();
 
+}
+
+void CGraphics_Threaded::ReadBackbuffer(unsigned char **ppPixels, int x, int y, int w, int h)
+{
+	if(!ppPixels)
+		return;
+
+	// add swap command
+	CImageInfo Image;
+	mem_zero(&Image, sizeof(Image));
+
+	CCommandBuffer::SCommand_Screenshot Cmd;
+	Cmd.m_pImage = &Image;
+	Cmd.m_X = x; Cmd.m_Y = y;
+	Cmd.m_W = w; Cmd.m_H = h;
+	m_pCommandBuffer->AddCommand(Cmd);
+
+	// kick the buffer and wait for the result
+	KickCommandBuffer();
+	WaitForIdle();
+
+	*ppPixels = (unsigned char *)Image.m_pData; // take ownership!
 }
 
 void CGraphics_Threaded::TakeScreenshot(const char *pFilename)
@@ -880,6 +933,21 @@ void CGraphics_Threaded::Swap()
 	KickCommandBuffer();
 }
 
+bool CGraphics_Threaded::SetVSync(bool State)
+{
+	// add vsnc command
+	bool RetOk = 0;
+	CCommandBuffer::SCommand_VSync Cmd;
+	Cmd.m_VSync = State ? 1 : 0;
+	Cmd.m_pRetOk = &RetOk;
+	m_pCommandBuffer->AddCommand(Cmd);
+
+	// kick the command buffer
+	KickCommandBuffer();
+	WaitForIdle();
+	return RetOk;
+}
+
 // syncronization
 void CGraphics_Threaded::InsertSignal(semaphore *pSemaphore)
 {
@@ -888,7 +956,7 @@ void CGraphics_Threaded::InsertSignal(semaphore *pSemaphore)
 	m_pCommandBuffer->AddCommand(Cmd);
 }
 
-bool CGraphics_Threaded::IsIdle()
+bool CGraphics_Threaded::IsIdle() const
 {
 	return m_pBackend->IsIdle();
 }
@@ -898,7 +966,7 @@ void CGraphics_Threaded::WaitForIdle()
 	m_pBackend->WaitForIdle();
 }
 
-int CGraphics_Threaded::GetVideoModes(CVideoMode *pModes, int MaxModes)
+int CGraphics_Threaded::GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen)
 {
 	if(g_Config.m_GfxDisplayAllModes)
 	{
@@ -918,6 +986,7 @@ int CGraphics_Threaded::GetVideoModes(CVideoMode *pModes, int MaxModes)
 	Cmd.m_pModes = pModes;
 	Cmd.m_MaxModes = MaxModes;
 	Cmd.m_pNumModes = &NumModes;
+	Cmd.m_Screen = Screen;
 	m_pCommandBuffer->AddCommand(Cmd);
 
 	// kick the buffer and wait for the result and return it

@@ -7,7 +7,7 @@
 bool CBinds::CBindsSpecial::OnInput(IInput::CEvent Event)
 {
 	// don't handle invalid events and keys that arn't set to anything
-	if(Event.m_Key >= KEY_F1 && Event.m_Key <= KEY_F15 && m_pBinds->m_aaKeyBindings[Event.m_Key][0] != 0)
+	if(((Event.m_Key >= KEY_F1 && Event.m_Key <= KEY_F12) || (Event.m_Key >= KEY_F13 && Event.m_Key <= KEY_F24)) && m_pBinds->m_aaKeyBindings[Event.m_Key][0] != 0)
 	{
 		int Stroke = 0;
 		if(Event.m_Flags&IInput::FLAG_PRESS)
@@ -47,10 +47,10 @@ bool CBinds::OnInput(IInput::CEvent e)
 	if(e.m_Key <= 0 || e.m_Key >= KEY_LAST || m_aaKeyBindings[e.m_Key][0] == 0)
 		return false;
 
-	int Stroke = 0;
 	if(e.m_Flags&IInput::FLAG_PRESS)
-		Stroke = 1;
-	Console()->ExecuteLineStroked(Stroke, m_aaKeyBindings[e.m_Key]);
+		Console()->ExecuteLineStroked(1, m_aaKeyBindings[e.m_Key]);
+	if(e.m_Flags&IInput::FLAG_RELEASE)
+		Console()->ExecuteLineStroked(0, m_aaKeyBindings[e.m_Key]);
 	return true;
 }
 
@@ -114,6 +114,7 @@ void CBinds::SetDefaults()
 
 	Bind('t', "chat all");
 	Bind('y', "chat team");
+	Bind('x', "chat whisper");
 
 	Bind(KEY_F3, "vote yes");
 	Bind(KEY_F4, "vote no");
@@ -219,7 +220,6 @@ void CBinds::ConfigSaveCallback(IConfig *pConfig, void *pUserData)
 
 	char aBuffer[256];
 	char *pEnd = aBuffer+sizeof(aBuffer)-8;
-	pConfig->WriteLine("unbindall");
 	for(int i = 0; i < KEY_LAST; i++)
 	{
 		if(pSelf->m_aaKeyBindings[i][0] == 0)

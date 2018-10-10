@@ -85,9 +85,9 @@ static CMapLayers gs_MapLayersForeGround(CMapLayers::TYPE_FOREGROUND);
 CGameClient::CStack::CStack() { m_Num = 0; }
 void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_Num++] = pComponent; }
 
-const char *CGameClient::Version() { return GAME_VERSION; }
-const char *CGameClient::NetVersion() { return GAME_NETVERSION; }
-const char *CGameClient::GetItemName(int Type) { return m_NetObjHandler.GetObjName(Type); }
+const char *CGameClient::Version() const { return GAME_VERSION; }
+const char *CGameClient::NetVersion() const { return GAME_NETVERSION; }
+const char *CGameClient::GetItemName(int Type) const { return m_NetObjHandler.GetObjName(Type); }
 
 const char *CGameClient::GetTeamName(int Team, bool Teamplay) const
 {
@@ -259,7 +259,6 @@ void CGameClient::OnInit()
 		Client()->SnapSetStaticsize(i, m_NetObjHandler.GetObjSize(i));
 
 	// load default font
-	static CFont *pDefaultFont = 0;
 	char aFontName[256];
 	str_format(aFontName, sizeof(aFontName), "fonts/%s", g_Config.m_ClFontfile);
 	char aFilename[512];
@@ -267,14 +266,12 @@ void CGameClient::OnInit()
 	if(File)
 	{
 		io_close(File);
-		pDefaultFont = TextRender()->LoadFont(aFilename);
-		TextRender()->SetDefaultFont(pDefaultFont);
-	}
-	if(!pDefaultFont)
-	{
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "failed to load font. filename='%s'", aFontName);
-		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "gameclient", aBuf);
+		if(TextRender()->LoadFont(aFilename))
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "failed to load font. filename='%s'", aFontName);
+			Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "gameclient", aBuf);
+		}
 	}
 
 	// init all components
@@ -298,7 +295,7 @@ void CGameClient::OnInit()
 	m_ServerMode = SERVERMODE_PURE;
 }
 
-void CGameClient::DispatchInput()
+void CGameClient::OnUpdate()
 {
 	// handle mouse movement
 	float x = 0.0f, y = 0.0f;
@@ -316,19 +313,15 @@ void CGameClient::DispatchInput()
 	for(int i = 0; i < Input()->NumEvents(); i++)
 	{
 		IInput::CEvent e = Input()->GetEvent(i);
+		if(!Input()->IsEventValid(&e))
+			continue;
 
 		for(int h = 0; h < m_Input.m_Num; h++)
 		{
 			if(m_Input.m_paComponents[h]->OnInput(e))
-			{
-				//dbg_msg("", "%d char=%d key=%d flags=%d", h, e.ch, e.key, e.flags);
 				break;
-			}
 		}
 	}
-
-	// clear all events for this frame
-	Input()->ClearEvents();
 }
 
 
@@ -371,7 +364,8 @@ void CGameClient::OnReset()
 	m_LocalClientID = -1;
 	m_TeamCooldownTick = 0;
 	mem_zero(&m_GameInfo, sizeof(m_GameInfo));
-	m_DemoSpecID = SPEC_FREEVIEW;
+	m_DemoSpecMode = SPEC_FREEVIEW;
+	m_DemoSpecID = -1;
 	m_Tuning = CTuningParams();
 }
 
@@ -400,7 +394,7 @@ void CGameClient::UpdatePositions()
 	if(m_Snap.m_SpecInfo.m_Active)
 	{
 		if(Client()->State() == IClient::STATE_DEMOPLAYBACK && DemoPlayer()->GetDemoType() == IDemoPlayer::DEMOTYPE_SERVER &&
-			m_Snap.m_SpecInfo.m_SpectatorID != SPEC_FREEVIEW)
+			m_Snap.m_SpecInfo.m_SpectatorID != -1)
 		{
 			m_Snap.m_SpecInfo.m_Position = mix(
 				vec2(m_Snap.m_aCharacters[m_Snap.m_SpecInfo.m_SpectatorID].m_Prev.m_X, m_Snap.m_aCharacters[m_Snap.m_SpecInfo.m_SpectatorID].m_Prev.m_Y),
@@ -408,7 +402,7 @@ void CGameClient::UpdatePositions()
 				Client()->IntraGameTick());
 			m_Snap.m_SpecInfo.m_UsePosition = true;
 		}
-		else if(m_Snap.m_pSpectatorInfo && (Client()->State() == IClient::STATE_DEMOPLAYBACK || m_Snap.m_SpecInfo.m_SpectatorID != SPEC_FREEVIEW))
+		else if(m_Snap.m_pSpectatorInfo && (Client()->State() == IClient::STATE_DEMOPLAYBACK || m_Snap.m_SpecInfo.m_SpecMode != SPEC_FREEVIEW))
 		{
 			if(m_Snap.m_pPrevSpectatorInfo)
 				m_Snap.m_SpecInfo.m_Position = mix(vec2(m_Snap.m_pPrevSpectatorInfo->m_X, m_Snap.m_pPrevSpectatorInfo->m_Y),
@@ -443,30 +437,15 @@ void CGameClient::EvolveCharacter(CNetObj_Character *pCharacter, int Tick)
 
 void CGameClient::OnRender()
 {
-	/*Graphics()->Clear(1,0,0);
-
-	menus->render_background();
-	return;*/
-	/*
-	Graphics()->Clear(1,0,0);
-	Graphics()->MapScreen(0,0,100,100);
-
-	Graphics()->QuadsBegin();
-		Graphics()->SetColor(1,1,1,1);
-		Graphics()->QuadsDraw(50, 50, 30, 30);
-	Graphics()->QuadsEnd();
-
-	return;*/
-
 	// update the local character and spectate position
 	UpdatePositions();
-
-	// dispatch all input to systems
-	DispatchInput();
 
 	// render all systems
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnRender();
+
+	// clear all events/input for this frame
+	Input()->Clear();
 }
 
 void CGameClient::OnRelease()
@@ -481,25 +460,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 	Client()->RecordGameMessage(true);
 
 	// special messages
-	if(MsgId == NETMSGTYPE_SV_EXTRAPROJECTILE)
-	{
-		int Num = pUnpacker->GetInt();
-
-		for(int k = 0; k < Num; k++)
-		{
-			CNetObj_Projectile Proj;
-			for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
-				((int *)&Proj)[i] = pUnpacker->GetInt();
-
-			if(pUnpacker->Error())
-				return;
-
-			m_pItems->AddExtraProjectile(&Proj);
-		}
-
-		return;
-	}
-	else if(MsgId == NETMSGTYPE_SV_TUNEPARAMS && Client()->State() != IClient::STATE_DEMOPLAYBACK)
+	if(MsgId == NETMSGTYPE_SV_TUNEPARAMS && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		Client()->RecordGameMessage(false);
 		// unpack the new tuning
@@ -575,18 +536,23 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 			case GAMEMSG_CTF_GRAB:
 				if(m_SuppressEvents)
 					return;
-				if(m_LocalClientID != -1 && (m_aClients[m_LocalClientID].m_Team != aParaI[0] ||
-					(m_Snap.m_SpecInfo.m_Active && m_Snap.m_SpecInfo.m_SpectatorID != -1 && m_aClients[m_Snap.m_SpecInfo.m_SpectatorID].m_Team != aParaI[0])))
+				if(m_LocalClientID != -1 && (m_aClients[m_LocalClientID].m_Team != aParaI[0] || (m_Snap.m_SpecInfo.m_Active &&
+								((m_Snap.m_SpecInfo.m_SpectatorID != -1 && m_aClients[m_Snap.m_SpecInfo.m_SpectatorID].m_Team != aParaI[0]) ||
+								(m_Snap.m_SpecInfo.m_SpecMode == SPEC_FLAGRED && aParaI[0] != TEAM_RED) ||
+								(m_Snap.m_SpecInfo.m_SpecMode == SPEC_FLAGBLUE && aParaI[0] != TEAM_BLUE)))))
 					m_pSounds->Enqueue(CSounds::CHN_GLOBAL, SOUND_CTF_GRAB_PL);
 				else
 					m_pSounds->Enqueue(CSounds::CHN_GLOBAL, SOUND_CTF_GRAB_EN);
 				break;
 			case GAMEMSG_CTF_CAPTURE:
 				m_pSounds->Enqueue(CSounds::CHN_GLOBAL, SOUND_CTF_CAPTURE);
+				int ClientID = clamp(aParaI[1], 0, MAX_CLIENTS - 1);
 				if(aParaI[2] <= 60*Client()->GameTickSpeed())
-					str_format(aBuf, sizeof(aBuf), Localize("The %s flag was captured by '%s' (%.2f seconds)"), aParaI[0] ? Localize("blue") : Localize("red"), m_aClients[clamp(aParaI[1], 0, MAX_CLIENTS-1)].m_aName, aParaI[2]/(float)Client()->GameTickSpeed());
+					str_format(aBuf, sizeof(aBuf), Localize("The %s flag was captured by '%2d: %s' (%.2f seconds)"), aParaI[0] ? Localize("blue") : Localize("red"),
+						ClientID, g_Config.m_ClShowsocial ? m_aClients[ClientID].m_aName : "", aParaI[2]/(float)Client()->GameTickSpeed());
 				else
-					str_format(aBuf, sizeof(aBuf), Localize("The %s flag was captured by '%s'"), aParaI[0] ? Localize("blue") : Localize("red"), m_aClients[clamp(aParaI[1], 0, MAX_CLIENTS-1)].m_aName);
+					str_format(aBuf, sizeof(aBuf), Localize("The %s flag was captured by '%2d: %s'"), aParaI[0] ? Localize("blue") : Localize("red"),
+						ClientID, g_Config.m_ClShowsocial ? m_aClients[ClientID].m_aName : "");
 				m_pChat->AddLine(-1, 0, aBuf);
 			}
 			return;
@@ -657,12 +623,13 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 
 			if(m_LocalClientID != -1)
 			{
-				DoEnterMessage(pMsg->m_pName, pMsg->m_Team);
+				DoEnterMessage(pMsg->m_pName, pMsg->m_ClientID, pMsg->m_Team);
 				
 				if(m_pDemoRecorder->IsRecording())
 				{
 					CNetMsg_De_ClientEnter Msg;
 					Msg.m_pName = pMsg->m_pName;
+					Msg.m_ClientID = pMsg->m_ClientID;
 					Msg.m_Team = pMsg->m_Team;
 					Client()->SendPackMsg(&Msg, MSGFLAG_NOSEND|MSGFLAG_RECORD);
 				}
@@ -703,10 +670,11 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 			return;
 		}
 
-		DoLeaveMessage(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_pReason);
+		DoLeaveMessage(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_ClientID, pMsg->m_pReason);
 
 		CNetMsg_De_ClientLeave Msg;
 		Msg.m_pName = m_aClients[pMsg->m_ClientID].m_aName;
+		Msg.m_ClientID = pMsg->m_ClientID;
 		Msg.m_pReason = pMsg->m_pReason;
 		Client()->SendPackMsg(&Msg, MSGFLAG_NOSEND|MSGFLAG_RECORD);
 
@@ -765,7 +733,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 
 		if(pMsg->m_Silent == 0)
 		{
-			DoTeamChangeMessage(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_Team);
+			DoTeamChangeMessage(m_aClients[pMsg->m_ClientID].m_aName, pMsg->m_ClientID, pMsg->m_Team);
 		}		
 	}
 	else if(MsgId == NETMSGTYPE_SV_READYTOENTER)
@@ -783,12 +751,12 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 	else if(MsgId == NETMSGTYPE_DE_CLIENTENTER && Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		CNetMsg_De_ClientEnter *pMsg = (CNetMsg_De_ClientEnter *)pRawMsg;
-		DoEnterMessage(pMsg->m_pName, pMsg->m_Team);
+		DoEnterMessage(pMsg->m_pName, pMsg->m_ClientID, pMsg->m_Team);
 	}
 	else if(MsgId == NETMSGTYPE_DE_CLIENTLEAVE && Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		CNetMsg_De_ClientLeave *pMsg = (CNetMsg_De_ClientLeave *)pRawMsg;
-		DoLeaveMessage(pMsg->m_pName, pMsg->m_pReason);
+		DoLeaveMessage(pMsg->m_pName, pMsg->m_ClientID, pMsg->m_pReason);
 	}
 }
 
@@ -900,7 +868,7 @@ void CGameClient::OnNewSnapshot()
 		for(int Index = 0; Index < Num; Index++)
 		{
 			IClient::CSnapItem Item;
-			void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, Index, &Item);
+			const void *pData = Client()->SnapGetItem(IClient::SNAP_CURRENT, Index, &Item);
 			if(m_NetObjHandler.ValidateObj(Item.m_Type, pData, Item.m_DataSize) != 0)
 			{
 				if(g_Config.m_Debug)
@@ -921,13 +889,14 @@ void CGameClient::OnNewSnapshot()
 		if((Client()->GameTick()%100) == 0)
 		{
 			char aMessage[64];
-			int MsgLen = rand()%(sizeof(aMessage)-1);
+			int MsgLen = random_int()%(sizeof(aMessage)-1);
 			for(int i = 0; i < MsgLen; i++)
-				aMessage[i] = 'a'+(rand()%('z'-'a'));
+				aMessage[i] = 'a'+(random_int()%('z'-'a'));
 			aMessage[MsgLen] = 0;
 
 			CNetMsg_Cl_Say Msg;
-			Msg.m_Team = rand()&1;
+			Msg.m_Mode = random_int()&1;
+			Msg.m_Target = -1;
 			Msg.m_pMessage = aMessage;
 			Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 		}
@@ -965,7 +934,7 @@ void CGameClient::OnNewSnapshot()
 					IntsToStr(pInfo->m_aClan, 3, pClient->m_aClan);
 					pClient->m_Country = pInfo->m_Country;
 
-					for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+					for(int p = 0; p < NUM_SKINPARTS; p++)
 					{
 						IntsToStr(pInfo->m_aaSkinPartNames[p], 6, pClient->m_aaSkinPartNames[p]);
 						pClient->m_aUseCustomColors[p] = pInfo->m_aUseCustomColors[p];
@@ -1014,7 +983,8 @@ void CGameClient::OnNewSnapshot()
 						if(m_aClients[ClientID].m_Team == TEAM_SPECTATORS)
 						{
 							m_Snap.m_SpecInfo.m_Active = true;
-							m_Snap.m_SpecInfo.m_SpectatorID = SPEC_FREEVIEW;
+							m_Snap.m_SpecInfo.m_SpecMode = SPEC_FREEVIEW;
+							m_Snap.m_SpecInfo.m_SpectatorID = -1;
 						}
 					}
 				}
@@ -1047,6 +1017,7 @@ void CGameClient::OnNewSnapshot()
 				m_Snap.m_pSpectatorInfo = (const CNetObj_SpectatorInfo *)pData;
 				m_Snap.m_pPrevSpectatorInfo = (const CNetObj_SpectatorInfo *)Client()->SnapFindItem(IClient::SNAP_PREV, NETOBJTYPE_SPECTATORINFO, Item.m_ID);
 				m_Snap.m_SpecInfo.m_Active = true;
+				m_Snap.m_SpecInfo.m_SpecMode = m_Snap.m_pSpectatorInfo->m_SpecMode;
 				m_Snap.m_SpecInfo.m_SpectatorID = m_Snap.m_pSpectatorInfo->m_SpectatorID;
 			}
 			else if(Item.m_Type == NETOBJTYPE_GAMEDATA)
@@ -1094,10 +1065,24 @@ void CGameClient::OnNewSnapshot()
 	{
 		m_Snap.m_SpecInfo.m_Active = true;
 		if(Client()->State() == IClient::STATE_DEMOPLAYBACK && DemoPlayer()->GetDemoType() == IDemoPlayer::DEMOTYPE_SERVER &&
-			m_DemoSpecID != SPEC_FREEVIEW && m_Snap.m_aCharacters[m_DemoSpecID].m_Active)
+			m_DemoSpecID != -1 && m_Snap.m_aCharacters[m_DemoSpecID].m_Active)
+		{
+			m_Snap.m_SpecInfo.m_SpecMode = SPEC_PLAYER;
 			m_Snap.m_SpecInfo.m_SpectatorID = m_DemoSpecID;
+		}
 		else
-			m_Snap.m_SpecInfo.m_SpectatorID = SPEC_FREEVIEW;
+		{
+			if (m_DemoSpecMode == SPEC_PLAYER)
+			{
+				m_Snap.m_SpecInfo.m_SpecMode = SPEC_FREEVIEW;
+				m_Snap.m_SpecInfo.m_SpectatorID = -1;
+			}
+			else
+			{
+				m_Snap.m_SpecInfo.m_SpecMode = m_DemoSpecMode;
+				m_Snap.m_SpecInfo.m_SpectatorID = m_DemoSpecID;
+			}
+		}
 	}
 
 	// sort player infos by score
@@ -1252,9 +1237,9 @@ void CGameClient::OnPredict()
 			if(m_LocalClientID == c)
 			{
 				// apply player input
-				int *pInput = Client()->GetInput(Tick);
+				const int *pInput = Client()->GetInput(Tick);
 				if(pInput)
-					World.m_apCharacters[c]->m_Input = *((CNetObj_PlayerInput*)pInput);
+					World.m_apCharacters[c]->m_Input = *((const CNetObj_PlayerInput*)pInput);
 				World.m_apCharacters[c]->Tick(true);
 			}
 			else
@@ -1321,12 +1306,12 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 	{
 		m_SkinInfo.m_Size = 64;
 
-		for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
 			int ID = pGameClient->m_pSkins->FindSkinPart(p, m_aaSkinPartNames[p], false);
 			if(ID < 0)
 			{
-				if(p == CSkins::SKINPART_MARKING || p == CSkins::SKINPART_DECORATION)
+				if(p == SKINPART_MARKING || p == SKINPART_DECORATION)
 					ID = pGameClient->m_pSkins->FindSkinPart(p, "", false);
 				else
 					ID = pGameClient->m_pSkins->FindSkinPart(p, "standard", false);
@@ -1343,7 +1328,7 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 			if(m_aUseCustomColors[p])
 			{
 				m_SkinInfo.m_aTextures[p] = pSkinPart->m_ColorTexture;
-				m_SkinInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(m_aSkinPartColors[p], p==CSkins::SKINPART_MARKING);
+				m_SkinInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(m_aSkinPartColors[p], p==SKINPART_MARKING);
 			}
 			else
 			{
@@ -1358,11 +1343,11 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 	// force team colors
 	if(pGameClient->m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS)
 	{
-		for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
 			m_RenderInfo.m_aTextures[p] = pGameClient->m_pSkins->GetSkinPart(p, m_SkinPartIDs[p])->m_ColorTexture;
 			int ColorVal = pGameClient->m_pSkins->GetTeamColor(m_aUseCustomColors[p], m_aSkinPartColors[p], m_Team, p);
-			m_RenderInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(ColorVal, p==CSkins::SKINPART_MARKING);
+			m_RenderInfo.m_aColors[p] = pGameClient->m_pSkins->GetColorV4(ColorVal, p==SKINPART_MARKING);
 		}
 	}
 }
@@ -1379,7 +1364,7 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient)
 	m_Active = false;
 	m_ChatIgnore = false;
 	m_Friend = false;
-	for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		m_SkinPartIDs[p] = 0;
 		m_SkinInfo.m_aTextures[p] = pGameClient->m_pSkins->GetSkinPart(p, 0)->m_ColorTexture;
@@ -1388,27 +1373,27 @@ void CGameClient::CClientData::Reset(CGameClient *pGameClient)
 	UpdateRenderInfo(pGameClient, false);
 }
 
-void CGameClient::DoEnterMessage(const char *pName, int Team)
+void CGameClient::DoEnterMessage(const char *pName, int ClientID, int Team)
 {
 	char aBuf[128];
-	str_format(aBuf, sizeof(aBuf), Localize("'%s' entered and joined the %s"), pName, GetTeamName(Team, m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS));
+	str_format(aBuf, sizeof(aBuf), Localize("'%2d: %s' entered and joined the %s"), ClientID, g_Config.m_ClShowsocial ? pName : "", GetTeamName(Team, m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS));
 	m_pChat->AddLine(-1, 0, aBuf);
 }
 
-void CGameClient::DoLeaveMessage(const char *pName, const char *pReason)
+void CGameClient::DoLeaveMessage(const char *pName, int ClientID, const char *pReason)
 {
 	char aBuf[128];
 	if(pReason[0])
-		str_format(aBuf, sizeof(aBuf), Localize("'%s' has left the game (%s)"), pName, pReason);
+		str_format(aBuf, sizeof(aBuf), Localize("'%2d: %s' has left the game (%s)"), ClientID, g_Config.m_ClShowsocial ? pName : "", pReason);
 	else
-		str_format(aBuf, sizeof(aBuf), Localize("'%s' has left the game"), pName);
+		str_format(aBuf, sizeof(aBuf), Localize("'%2d: %s' has left the game"), ClientID, g_Config.m_ClShowsocial ? pName : "");
 	m_pChat->AddLine(-1, 0, aBuf);
 }
 
-void CGameClient::DoTeamChangeMessage(const char *pName, int Team)
+void CGameClient::DoTeamChangeMessage(const char *pName, int ClientID, int Team)
 {
 	char aBuf[128];
-	str_format(aBuf, sizeof(aBuf), Localize("'%s' joined the %s"), pName, GetTeamName(Team, m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS));
+	str_format(aBuf, sizeof(aBuf), Localize("'%2d: %s' joined the %s"), ClientID, g_Config.m_ClShowsocial ? pName : "", GetTeamName(Team, m_GameInfo.m_GameFlags&GAMEFLAG_TEAMS));
 	m_pChat->AddLine(-1, 0, aBuf);
 }
 
@@ -1425,7 +1410,7 @@ void CGameClient::SendStartInfo()
 	Msg.m_pName = g_Config.m_PlayerName;
 	Msg.m_pClan = g_Config.m_PlayerClan;
 	Msg.m_Country = g_Config.m_PlayerCountry;
-	for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+	for(int p = 0; p < NUM_SKINPARTS; p++)
 	{
 		Msg.m_apSkinPartNames[p] = CSkins::ms_apSkinVariables[p];
 		Msg.m_aUseCustomColors[p] = *CSkins::ms_apUCCVariables[p];

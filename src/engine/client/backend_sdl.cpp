@@ -1,6 +1,11 @@
-
+#include <base/detect.h>
 #include "SDL.h"
 #include "SDL_opengl.h"
+#if defined(CONF_PLATFORM_MACOSX)
+#include "OpenGL/glu.h"
+#else
+#include "GL/glu.h"
+#endif
 
 #include <base/tl/threading.h>
 
@@ -9,16 +14,18 @@
 
 
 #if defined(CONF_FAMILY_WINDOWS)
-	PFNGLTEXIMAGE3DPROC glTexImage3D;
+	PFNGLTEXIMAGE3DPROC glTexImage3DInternal;
+
+	GLAPI void GLAPIENTRY glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+	{
+		glTexImage3DInternal(target, level, internalFormat, width, height, depth, border, format, type, pixels);
+	}
 #endif
 
 // ------------ CGraphicsBackend_Threaded
 
 void CGraphicsBackend_Threaded::ThreadFunc(void *pUser)
 {
-	#ifdef CONF_PLATFORM_MACOSX
-		CAutoreleasePool AutoreleasePool;
-	#endif
 	CGraphicsBackend_Threaded *pThis = (CGraphicsBackend_Threaded *)pUser;
 
 	while(!pThis->m_Shutdown)
@@ -26,6 +33,9 @@ void CGraphicsBackend_Threaded::ThreadFunc(void *pUser)
 		pThis->m_Activity.wait();
 		if(pThis->m_pBuffer)
 		{
+			#ifdef CONF_PLATFORM_MACOSX
+				CAutoreleasePool AutoreleasePool;
+			#endif
 			pThis->m_pProcessor->RunBuffer(pThis->m_pBuffer);
 			sync_barrier();
 			pThis->m_pBuffer = 0x0;
@@ -45,7 +55,7 @@ void CGraphicsBackend_Threaded::StartProcessor(ICommandProcessor *pProcessor)
 {
 	m_Shutdown = false;
 	m_pProcessor = pProcessor;
-	m_pThread = thread_create(ThreadFunc, this);
+	m_pThread = thread_init(ThreadFunc, this);
 	m_BufferDone.signal();
 }
 
@@ -142,24 +152,6 @@ void *CCommandProcessorFragment_OpenGL::Rescale(int Width, int Height, int NewWi
 
 void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &State)
 {
-	// blend
-	switch(State.m_BlendMode)
-	{
-	case CCommandBuffer::BLEND_NONE:
-		glDisable(GL_BLEND);
-		break;
-	case CCommandBuffer::BLEND_ALPHA:
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		break;
-	case CCommandBuffer::BLEND_ADDITIVE:
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		break;
-	default:
-		dbg_msg("render", "unknown blendmode %d\n", State.m_BlendMode);
-	};
-
 	// clip
 	if(State.m_ClipEnable)
 	{
@@ -171,6 +163,7 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 	
 
 	// texture
+	int SrcBlendMode = GL_ONE;
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_3D);
 	if(State.m_Texture >= 0 && State.m_Texture < CCommandBuffer::MAX_TEXTURES)
@@ -187,20 +180,54 @@ void CCommandProcessorFragment_OpenGL::SetState(const CCommandBuffer::SState &St
 		}
 		else
 			dbg_msg("render", "invalid texture %d %d %d\n", State.m_Texture, State.m_Dimension, m_aTextures[State.m_Texture].m_State);
+
+		if(m_aTextures[State.m_Texture].m_Format == CCommandBuffer::TEXFORMAT_RGBA)
+			SrcBlendMode = GL_ONE;
+		else
+			SrcBlendMode = GL_SRC_ALPHA;
 	}
 
-	switch(State.m_WrapMode)
+	// blend
+	switch(State.m_BlendMode)
 	{
-	case CCommandBuffer::WRAP_REPEAT:
+	case CCommandBuffer::BLEND_NONE:
+		glDisable(GL_BLEND);
+		break;
+	case CCommandBuffer::BLEND_ALPHA:
+		glEnable(GL_BLEND);
+		glBlendFunc(SrcBlendMode, GL_ONE_MINUS_SRC_ALPHA);
+		break;
+	case CCommandBuffer::BLEND_ADDITIVE:
+		glEnable(GL_BLEND);
+		glBlendFunc(SrcBlendMode, GL_ONE);
+		break;
+	default:
+		dbg_msg("render", "unknown blendmode %d\n", State.m_BlendMode);
+	};
+
+	// wrap mode
+	switch(State.m_WrapModeU)
+	{
+	case IGraphics::WRAP_REPEAT:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		break;
+	case IGraphics::WRAP_CLAMP:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		break;
+	default:
+		dbg_msg("render", "unknown wrapmode %d\n", State.m_WrapModeU);
+	};
+
+	switch(State.m_WrapModeV)
+	{
+	case IGraphics::WRAP_REPEAT:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		break;
-	case CCommandBuffer::WRAP_CLAMP:
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	case IGraphics::WRAP_CLAMP:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		break;
 	default:
-		dbg_msg("render", "unknown wrapmode %d\n", State.m_WrapMode);
+		dbg_msg("render", "unknown wrapmode %d\n", State.m_WrapModeV);
 	};
 
 	if(State.m_Texture >= 0 && State.m_Texture < CCommandBuffer::MAX_TEXTURES && State.m_Dimension == 3)
@@ -290,6 +317,20 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 			pTexData = pTmpData;
 		}
 	}
+
+	// use premultiplied alpha for rgba textures
+	if(pCommand->m_Format == CCommandBuffer::TEXFORMAT_RGBA)
+	{
+		unsigned char *pTexels = (unsigned char *)pTexData;
+		for(int i = 0; i < Width * Height; ++i)
+		{
+			const float a = (pTexels[i*4+3]/255.0f);
+			pTexels[i*4+0] = (unsigned char)(pTexels[i*4+0] * a);
+			pTexels[i*4+1] = (unsigned char)(pTexels[i*4+1] * a);
+			pTexels[i*4+2] = (unsigned char)(pTexels[i*4+2] * a);
+		}
+	}
+	m_aTextures[pCommand->m_Slot].m_Format = pCommand->m_Format;
 	
 	//
 	int Oglformat = TexFormatToOpenGLFormat(pCommand->m_Format);
@@ -417,9 +458,11 @@ void CCommandProcessorFragment_OpenGL::Cmd_Screenshot(const CCommandBuffer::SCom
 	GLint aViewport[4] = {0,0,0,0};
 	glGetIntegerv(GL_VIEWPORT, aViewport);
 
-	int w = aViewport[2];
-	int h = aViewport[3];
-
+	int w = pCommand->m_W == -1 ? aViewport[2] : pCommand->m_W;
+	int h = pCommand->m_H == -1 ? aViewport[3] : pCommand->m_H;
+	int x = pCommand->m_X;
+	int y = aViewport[3] - pCommand->m_Y - 1 - (h - 1);
+	
 	// we allocate one more row to use when we are flipping the texture
 	unsigned char *pPixelData = (unsigned char *)mem_alloc(w*(h+1)*3, 1);
 	unsigned char *pTempRow = pPixelData+w*h*3;
@@ -428,15 +471,15 @@ void CCommandProcessorFragment_OpenGL::Cmd_Screenshot(const CCommandBuffer::SCom
 	GLint Alignment;
 	glGetIntegerv(GL_PACK_ALIGNMENT, &Alignment);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0,0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pPixelData);
+	glReadPixels(x, y, w, h, GL_RGB, GL_UNSIGNED_BYTE, pPixelData);
 	glPixelStorei(GL_PACK_ALIGNMENT, Alignment);
 
 	// flip the pixel because opengl works from bottom left corner
-	for(int y = 0; y < h/2; y++)
+	for(int ty = 0; ty < h/2; ty++)
 	{
-		mem_copy(pTempRow, pPixelData+y*w*3, w*3);
-		mem_copy(pPixelData+y*w*3, pPixelData+(h-y-1)*w*3, w*3);
-		mem_copy(pPixelData+(h-y-1)*w*3, pTempRow,w*3);
+		mem_copy(pTempRow, pPixelData+ty*w*3, w*3);
+		mem_copy(pPixelData+ty*w*3, pPixelData+(h-ty-1)*w*3, w*3);
+		mem_copy(pPixelData+(h-ty-1)*w*3, pTempRow,w*3);
 	}
 
 	// fill in the information
@@ -474,8 +517,9 @@ bool CCommandProcessorFragment_OpenGL::RunCommand(const CCommandBuffer::SCommand
 
 void CCommandProcessorFragment_SDL::Cmd_Init(const SCommand_Init *pCommand)
 {
-	m_GLContext = pCommand->m_Context;
-	GL_MakeCurrent(m_GLContext);
+	m_GLContext = pCommand->m_GLContext;
+	m_pWindow = pCommand->m_pWindow;
+	SDL_GL_MakeCurrent(m_pWindow, m_GLContext);
 
 	// set some default settings
 	glEnable(GL_BLEND);
@@ -491,48 +535,56 @@ void CCommandProcessorFragment_SDL::Cmd_Init(const SCommand_Init *pCommand)
 
 void CCommandProcessorFragment_SDL::Cmd_Shutdown(const SCommand_Shutdown *pCommand)
 {
-	GL_ReleaseContext(m_GLContext);
+	SDL_GL_MakeCurrent(NULL, NULL);
 }
 
 void CCommandProcessorFragment_SDL::Cmd_Swap(const CCommandBuffer::SCommand_Swap *pCommand)
 {
-	GL_SwapBuffers(m_GLContext);
+	SDL_GL_SwapWindow(m_pWindow);
 
 	if(pCommand->m_Finish)
 		glFinish();
 }
 
+void CCommandProcessorFragment_SDL::Cmd_VSync(const CCommandBuffer::SCommand_VSync *pCommand)
+{
+	*pCommand->m_pRetOk = SDL_GL_SetSwapInterval(pCommand->m_VSync) == 0;
+}
+
 void CCommandProcessorFragment_SDL::Cmd_VideoModes(const CCommandBuffer::SCommand_VideoModes *pCommand)
 {
-	// TODO: fix this code on osx or windows
-	SDL_Rect **ppModes = SDL_ListModes(NULL, SDL_OPENGL|SDL_GL_DOUBLEBUFFER|SDL_FULLSCREEN);
-	if(ppModes == NULL)
+	SDL_DisplayMode mode;
+	int maxModes = SDL_GetNumDisplayModes(pCommand->m_Screen),
+		numModes = 0;
+
+	for(int i = 0; i < maxModes; i++)
 	{
-		// no modes
-		*pCommand->m_pNumModes = 0;
-	}
-	else if(ppModes == (SDL_Rect**)-1)
-	{
-		// no modes
-		*pCommand->m_pNumModes = 0;
-	}
-	else
-	{
-		int NumModes = 0;
-		for(int i = 0; ppModes[i]; ++i)
+		if(SDL_GetDisplayMode(pCommand->m_Screen, i, &mode) < 0)
 		{
-			if(NumModes == pCommand->m_MaxModes)
-				break;
-			pCommand->m_pModes[NumModes].m_Width = ppModes[i]->w;
-			pCommand->m_pModes[NumModes].m_Height = ppModes[i]->h;
-			pCommand->m_pModes[NumModes].m_Red = 8;
-			pCommand->m_pModes[NumModes].m_Green = 8;
-			pCommand->m_pModes[NumModes].m_Blue = 8;
-			NumModes++;
+			dbg_msg("gfx", "unable to get display mode: %s", SDL_GetError());
+			continue;
 		}
 
-		*pCommand->m_pNumModes = NumModes;
+		bool alreadyFound = false;
+		for(int j = 0; j < numModes; j++)
+		{
+			if(pCommand->m_pModes[j].m_Width == mode.w && pCommand->m_pModes[j].m_Height == mode.h)
+			{
+				alreadyFound = true;
+				break;
+			}
+		}
+		if(alreadyFound)
+			continue;
+
+		pCommand->m_pModes[numModes].m_Width = mode.w;
+		pCommand->m_pModes[numModes].m_Height = mode.h;
+		pCommand->m_pModes[numModes].m_Red = 8;
+		pCommand->m_pModes[numModes].m_Green = 8;
+		pCommand->m_pModes[numModes].m_Blue = 8;
+		numModes++;
 	}
+	*pCommand->m_pNumModes = numModes;
 }
 
 CCommandProcessorFragment_SDL::CCommandProcessorFragment_SDL()
@@ -544,6 +596,7 @@ bool CCommandProcessorFragment_SDL::RunCommand(const CCommandBuffer::SCommand *p
 	switch(pBaseCommand->m_Cmd)
 	{
 	case CCommandBuffer::CMD_SWAP: Cmd_Swap(static_cast<const CCommandBuffer::SCommand_Swap *>(pBaseCommand)); break;
+	case CCommandBuffer::CMD_VSYNC: Cmd_VSync(static_cast<const CCommandBuffer::SCommand_VSync *>(pBaseCommand)); break;
 	case CCommandBuffer::CMD_VIDEOMODES: Cmd_VideoModes(static_cast<const CCommandBuffer::SCommand_VideoModes *>(pBaseCommand)); break;
 	case CMD_INIT: Cmd_Init(static_cast<const SCommand_Init *>(pBaseCommand)); break;
 	case CMD_SHUTDOWN: Cmd_Shutdown(static_cast<const SCommand_Shutdown *>(pBaseCommand)); break;
@@ -579,7 +632,7 @@ void CCommandProcessor_SDL_OpenGL::RunBuffer(CCommandBuffer *pBuffer)
 
 // ------------ CGraphicsBackend_SDL_OpenGL
 
-int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *pWidth, int *pHeight, int FsaaSamples, int Flags, int *pDesktopWidth, int *pDesktopHeight)
+int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *Screen, int *pWidth, int *pHeight, int FsaaSamples, int Flags, int *pDesktopWidth, int *pDesktopHeight)
 {
 	if(!SDL_WasInit(SDL_INIT_VIDEO))
 	{
@@ -588,51 +641,61 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *pWidth, int *pHeig
 			dbg_msg("gfx", "unable to init SDL video: %s", SDL_GetError());
 			return -1;
 		}
-
-		#ifdef CONF_FAMILY_WINDOWS
-			if(!getenv("SDL_VIDEO_WINDOW_POS") && !getenv("SDL_VIDEO_CENTERED")) // ignore_convention
-				putenv("SDL_VIDEO_WINDOW_POS=center"); // ignore_convention
-		#endif
 	}
 
-	const SDL_VideoInfo *pInfo = SDL_GetVideoInfo();
-	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE); // prevent stuck mouse cursor sdl-bug when loosing fullscreen focus in windows
-
-	// use current resolution as default
-	if(*pWidth == 0 || *pHeight == 0)
+	// set screen
+	SDL_Rect ScreenPos;
+	m_NumScreens = SDL_GetNumVideoDisplays();
+	if(m_NumScreens > 0)
 	{
-		*pWidth = pInfo->current_w;
-		*pHeight = pInfo->current_h;
+		clamp(*Screen, 0, m_NumScreens-1);
+		if(SDL_GetDisplayBounds(*Screen, &ScreenPos) != 0)
+		{
+			dbg_msg("gfx", "unable to retrieve screen information: %s", SDL_GetError());
+			return -1;
+		}
+
+	}
+	else
+	{
+		dbg_msg("gfx", "unable to retrieve number of screens: %s", SDL_GetError());
+		return -1;
 	}
 
 	// store desktop resolution for settings reset button
-	*pDesktopWidth = pInfo->current_w;
-	*pDesktopHeight = pInfo->current_h;
+	SDL_DisplayMode DisplayMode;
+	if(SDL_GetDesktopDisplayMode(*Screen, &DisplayMode))
+	{
+		dbg_msg("gfx", "unable to get desktop resolution: %s", SDL_GetError());
+		return -1;
+	}
+	*pDesktopWidth = DisplayMode.w;
+	*pDesktopHeight = DisplayMode.h;
+
+	// use desktop resolution as default resolution
+	if (*pWidth == 0 || *pWidth == 0)
+	{
+		*pWidth = *pDesktopWidth;
+		*pHeight = *pDesktopHeight;
+	}
 
 	// set flags
-	int SdlFlags = SDL_OPENGL;
+	int SdlFlags = SDL_WINDOW_OPENGL;
 	if(Flags&IGraphicsBackend::INITFLAG_RESIZABLE)
-		SdlFlags |= SDL_RESIZABLE;
-
-	if(pInfo->hw_available) // ignore_convention
-		SdlFlags |= SDL_HWSURFACE;
-	else
-		SdlFlags |= SDL_SWSURFACE;
-
-	if(pInfo->blit_hw) // ignore_convention
-		SdlFlags |= SDL_HWACCEL;
-
-	dbg_assert(!(Flags&IGraphicsBackend::INITFLAG_BORDERLESS)
-		|| !(Flags&IGraphicsBackend::INITFLAG_FULLSCREEN),
-		"only one of borderless and fullscreen may be activated at the same time");
-
+		SdlFlags |= SDL_WINDOW_RESIZABLE;
 	if(Flags&IGraphicsBackend::INITFLAG_BORDERLESS)
-		SdlFlags |= SDL_NOFRAME;
-
+		SdlFlags |= SDL_WINDOW_BORDERLESS;
 	if(Flags&IGraphicsBackend::INITFLAG_FULLSCREEN)
-		SdlFlags |= SDL_FULLSCREEN;
-
+#if defined(CONF_PLATFORM_MACOSX)	// Todo SDL: remove this when fixed (game freezes when losing focus in fullscreen)
+		SdlFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;	// always use "fake" fullscreen
+	*pWidth = *pDesktopWidth;
+	*pHeight = *pDesktopHeight;
+#else
+		SdlFlags |= SDL_WINDOW_FULLSCREEN;
+#endif
+	
 	// set gl attributes
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	if(FsaaSamples)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -644,35 +707,45 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *pWidth, int *pHeig
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, Flags&IGraphicsBackend::INITFLAG_VSYNC ? 1 : 0);
-
-	// set caption
-	SDL_WM_SetCaption(pName, pName);
+	// calculate centered position in windowed mode
+	int OffsetX = 0;
+	int OffsetY = 0;
+	if(!(Flags&IGraphicsBackend::INITFLAG_FULLSCREEN) && *pDesktopWidth > *pWidth && *pDesktopHeight > *pHeight)
+	{
+		OffsetX = (*pDesktopWidth - *pWidth) / 2;
+		OffsetY = (*pDesktopHeight - *pHeight) / 2;
+	}
 
 	// create window
-	m_pScreenSurface = SDL_SetVideoMode(*pWidth, *pHeight, 0, SdlFlags);
-	if(!m_pScreenSurface)
+	m_pWindow = SDL_CreateWindow(pName, ScreenPos.x+OffsetX, ScreenPos.y+OffsetY, *pWidth, *pHeight, SdlFlags);
+	if(m_pWindow == NULL)
 	{
-		dbg_msg("gfx", "unable to set video mode: %s", SDL_GetError());
-		//*pCommand->m_pResult = -1;
+		dbg_msg("gfx", "unable to create window: %s", SDL_GetError());
 		return -1;
-	}		
+	}
+
+	SDL_GetWindowSize(m_pWindow, pWidth, pHeight);
+
+	// create gl context
+	m_GLContext = SDL_GL_CreateContext(m_pWindow);
+	if(m_GLContext == NULL)
+	{
+		dbg_msg("gfx", "unable to create OpenGL context: %s", SDL_GetError());
+		return -1;
+	}
 
 	#if defined(CONF_FAMILY_WINDOWS)
-		glTexImage3D = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
-		if(glTexImage3D == 0)
+		glTexImage3DInternal = (PFNGLTEXIMAGE3DPROC) wglGetProcAddress("glTexImage3D");
+		if(glTexImage3DInternal == 0)
 		{
 			dbg_msg("gfx", "glTexImage3D not supported");
 			return -1;
 		}
 	#endif
 
-	SDL_ShowCursor(0);
+	SDL_GL_SetSwapInterval(Flags&IGraphicsBackend::INITFLAG_VSYNC ? 1 : 0);
 
-	// fetch gl contexts and release the context from this thread
-	m_GLContext = GL_GetCurrentContext();
-	GL_ReleaseContext(m_GLContext);
+	SDL_GL_MakeCurrent(NULL, NULL);
 
 	// start the command processor
 	m_pProcessor = new CCommandProcessor_SDL_OpenGL;
@@ -684,7 +757,8 @@ int CGraphicsBackend_SDL_OpenGL::Init(const char *pName, int *pWidth, int *pHeig
 	CmdOpenGL.m_pTextureMemoryUsage = &m_TextureMemoryUsage;
 	CmdBuffer.AddCommand(CmdOpenGL);
 	CCommandProcessorFragment_SDL::SCommand_Init CmdSDL;
-	CmdSDL.m_Context = m_GLContext;
+	CmdSDL.m_pWindow = m_pWindow;
+	CmdSDL.m_GLContext = m_GLContext;
 	CmdBuffer.AddCommand(CmdSDL);
 	RunBuffer(&CmdBuffer);
 	WaitForIdle();
@@ -707,6 +781,8 @@ int CGraphicsBackend_SDL_OpenGL::Shutdown()
 	delete m_pProcessor;
 	m_pProcessor = 0;
 
+	SDL_GL_DeleteContext(m_GLContext);
+	SDL_DestroyWindow(m_pWindow);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	return 0;
 }
@@ -718,22 +794,56 @@ int CGraphicsBackend_SDL_OpenGL::MemoryUsage() const
 
 void CGraphicsBackend_SDL_OpenGL::Minimize()
 {
-	SDL_WM_IconifyWindow();
+	SDL_MinimizeWindow(m_pWindow);
 }
 
 void CGraphicsBackend_SDL_OpenGL::Maximize()
 {
-	// TODO: SDL
+	SDL_MaximizeWindow(m_pWindow);
+}
+
+bool CGraphicsBackend_SDL_OpenGL::Fullscreen(bool State)
+{
+#if defined(CONF_PLATFORM_MACOSX)	// Todo SDL: remove this when fixed (game freezes when losing focus in fullscreen)
+	return SDL_SetWindowFullscreen(m_pWindow, State ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) == 0;
+#else
+	return SDL_SetWindowFullscreen(m_pWindow, State ? SDL_WINDOW_FULLSCREEN : 0) == 0;
+#endif
+}
+
+void CGraphicsBackend_SDL_OpenGL::SetWindowBordered(bool State)
+{
+	SDL_SetWindowBordered(m_pWindow, SDL_bool(State));
+}
+
+bool CGraphicsBackend_SDL_OpenGL::SetWindowScreen(int Index)
+{
+	if(Index >= 0 && Index < m_NumScreens)
+	{
+		SDL_Rect ScreenPos;
+		if(SDL_GetDisplayBounds(Index, &ScreenPos) == 0)
+		{
+			SDL_SetWindowPosition(m_pWindow, ScreenPos.x, ScreenPos.y);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int CGraphicsBackend_SDL_OpenGL::GetWindowScreen()
+{
+	return SDL_GetWindowDisplayIndex(m_pWindow);
 }
 
 int CGraphicsBackend_SDL_OpenGL::WindowActive()
 {
-	return SDL_GetAppState()&SDL_APPINPUTFOCUS;
+	return SDL_GetWindowFlags(m_pWindow)&SDL_WINDOW_INPUT_FOCUS;
 }
 
 int CGraphicsBackend_SDL_OpenGL::WindowOpen()
 {
-	return SDL_GetAppState()&SDL_APPACTIVE;
+	return SDL_GetWindowFlags(m_pWindow)&SDL_WINDOW_SHOWN;
 
 }
 

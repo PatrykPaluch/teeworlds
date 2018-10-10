@@ -71,6 +71,12 @@ public:
 		TEXLOAD_MULTI_DIMENSION = 8,
 	};
 
+	/* Constants: Wrap Modes */
+	enum
+	{
+		WRAP_REPEAT = 0,
+		WRAP_CLAMP,
+	};
 
 	class CTextureHandle
 	{
@@ -83,6 +89,7 @@ public:
 
 		bool IsValid() const { return Id() >= 0; }
 		int Id() const { return m_Id; }
+		void Invalidate() { m_Id = -1; }
 	};
 
 	int ScreenWidth() const { return m_ScreenWidth; }
@@ -103,11 +110,12 @@ public:
 	virtual void BlendAdditive() = 0;
 	virtual void WrapNormal() = 0;
 	virtual void WrapClamp() = 0;
+	virtual void WrapMode(int WrapU, int WrapV) = 0;
 	virtual int MemoryUsage() const = 0;
 
 	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) = 0;
 
-	virtual int UnloadTexture(CTextureHandle Index) = 0;
+	virtual int UnloadTexture(CTextureHandle *Index) = 0;
 	virtual CTextureHandle LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags) = 0;
 	virtual int LoadTextureRawSub(CTextureHandle TextureID, int x, int y, int Width, int Height, int Format, const void *pData) = 0;
 	virtual CTextureHandle LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags) = 0;
@@ -160,17 +168,20 @@ public:
 	virtual void SetColor(float r, float g, float b, float a) = 0;
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight) = 0;
 
+	virtual void ReadBackbuffer(unsigned char **ppPixels, int x, int y, int w, int h) = 0;
 	virtual void TakeScreenshot(const char *pFilename) = 0;
-	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes) = 0;
+	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen) = 0;
 
-	virtual int GetDesktopScreenWidth() = 0;
-	virtual int GetDesktopScreenHeight() = 0;
+	virtual int GetDesktopScreenWidth() const = 0;
+	virtual int GetDesktopScreenHeight() const = 0;
 
 	virtual void Swap() = 0;
+	virtual int GetNumScreens() const = 0;
+	
 
 	// syncronization
 	virtual void InsertSignal(class semaphore *pSemaphore) = 0;
-	virtual bool IsIdle() = 0;
+	virtual bool IsIdle() const = 0;
 	virtual void WaitForIdle() = 0;
 
 protected:
@@ -188,6 +199,12 @@ class IEngineGraphics : public IGraphics
 public:
 	virtual int Init() = 0;
 	virtual void Shutdown() = 0;
+
+	virtual bool Fullscreen(bool State) = 0;
+	virtual void SetWindowBordered(bool State) = 0;
+	virtual bool SetWindowScreen(int Index) = 0;
+	virtual bool SetVSync(bool State) = 0;
+	virtual int GetWindowScreen() = 0;
 
 	virtual void Minimize() = 0;
 	virtual void Maximize() = 0;

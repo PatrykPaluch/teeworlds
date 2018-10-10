@@ -47,6 +47,7 @@ inline T bezier(const T p0, const T p1, const T p2, const T p3, TB amount)
 	return mix(c20, c21, amount); // c30
 }
 
+inline int random_int() { return (((rand() & 0xffff) << 16) | (rand() & 0xffff)) & 0x7FFFFFFF; };
 inline float frandom() { return rand()/(float)(RAND_MAX); }
 
 // float to fixed
@@ -55,6 +56,7 @@ inline float fx2f(int v) { return v*(1.0f/(1<<10)); }
 
 // int to fixed
 inline int i2fx(int v) { return v<<10; }
+inline int fx2i(int v) { return v>>10; }
 
 inline int gcd(int a, int b)
 {

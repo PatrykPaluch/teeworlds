@@ -123,8 +123,6 @@ float SolveBezier(float x, float p0, float p1, float p2, float p3)
 				return -s*cos(phi-pi/3) - sub;
 		}
 	}
-
-	return 0.0f;
 }
 
 void CRenderTools::RenderEvalEnvelope(CEnvPoint *pPoints, int NumPoints, int Channels, float Time, float *pResult)
@@ -246,16 +244,16 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 			a = aChannels[3];
 		}
 
-		bool Opaque = false;
-		/* TODO: Analyze quadtexture
+		/*bool Opaque = false;
+		 TODO: Analyze quadtexture
 		if(a < 0.01f || (q->m_aColors[0].a < 0.01f && q->m_aColors[1].a < 0.01f && q->m_aColors[2].a < 0.01f && q->m_aColors[3].a < 0.01f))
 			Opaque = true;
-		*/
+		
 		if(Opaque && !(RenderFlags&LAYERRENDERFLAG_OPAQUE))
 			continue;
 		if(!Opaque && !(RenderFlags&LAYERRENDERFLAG_TRANSPARENT))
 			continue;
-
+		*/
 		vec2 aTexCoords[4];
 		for(int k = 0; k < 4; k++)
 		{
@@ -265,15 +263,17 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 
 		// Check if we want to repeat the texture
 		// Otherwise clamp to the edge to prevent texture bleeding
-		Graphics()->WrapClamp();
+		bool RepeatU = false, RepeatV = false;
 		for(int k = 0; k < 4; k++)
 		{
 			if(aTexCoords[k].x < 0.0f || aTexCoords[k].x > 1.0f)
-			{
-				Graphics()->WrapNormal();
-				break;
-			}
+				RepeatU = true;
+			if(aTexCoords[k].y < 0.0f || aTexCoords[k].y > 1.0f)
+				RepeatV = true;
 		}
+		Graphics()->WrapMode(
+			RepeatU ? IGraphics::WRAP_REPEAT : IGraphics::WRAP_CLAMP,
+			RepeatV ? IGraphics::WRAP_REPEAT : IGraphics::WRAP_CLAMP);
 
 		Graphics()->QuadsSetSubsetFree(
 			aTexCoords[0].x, aTexCoords[0].y,
@@ -296,10 +296,10 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 		}
 
 		IGraphics::CColorVertex Array[4] = {
-			IGraphics::CColorVertex(0, q->m_aColors[0].r*Conv*r, q->m_aColors[0].g*Conv*g, q->m_aColors[0].b*Conv*b, q->m_aColors[0].a*Conv*a),
-			IGraphics::CColorVertex(1, q->m_aColors[1].r*Conv*r, q->m_aColors[1].g*Conv*g, q->m_aColors[1].b*Conv*b, q->m_aColors[1].a*Conv*a),
-			IGraphics::CColorVertex(2, q->m_aColors[2].r*Conv*r, q->m_aColors[2].g*Conv*g, q->m_aColors[2].b*Conv*b, q->m_aColors[2].a*Conv*a),
-			IGraphics::CColorVertex(3, q->m_aColors[3].r*Conv*r, q->m_aColors[3].g*Conv*g, q->m_aColors[3].b*Conv*b, q->m_aColors[3].a*Conv*a)};
+			IGraphics::CColorVertex(0, q->m_aColors[0].r*Conv*r*q->m_aColors[0].a*Conv*a, q->m_aColors[0].g*Conv*g*q->m_aColors[0].a*Conv*a, q->m_aColors[0].b*Conv*b*q->m_aColors[0].a*Conv*a, q->m_aColors[0].a*Conv*a),
+			IGraphics::CColorVertex(1, q->m_aColors[1].r*Conv*r*q->m_aColors[1].a*Conv*a, q->m_aColors[1].g*Conv*g*q->m_aColors[1].a*Conv*a, q->m_aColors[1].b*Conv*b*q->m_aColors[1].a*Conv*a, q->m_aColors[1].a*Conv*a),
+			IGraphics::CColorVertex(2, q->m_aColors[2].r*Conv*r*q->m_aColors[2].a*Conv*a, q->m_aColors[2].g*Conv*g*q->m_aColors[2].a*Conv*a, q->m_aColors[2].b*Conv*b*q->m_aColors[2].a*Conv*a, q->m_aColors[2].a*Conv*a),
+			IGraphics::CColorVertex(3, q->m_aColors[3].r*Conv*r*q->m_aColors[3].a*Conv*a, q->m_aColors[3].g*Conv*g*q->m_aColors[3].a*Conv*a, q->m_aColors[3].b*Conv*b*q->m_aColors[3].a*Conv*a, q->m_aColors[3].a*Conv*a)};
 		Graphics()->SetColorVertex(Array, 4);
 
 		CPoint *pPoints = q->m_aPoints;

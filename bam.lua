@@ -1,4 +1,4 @@
-CheckVersion("0.4")
+CheckVersion("0.5")
 
 Import("configure.lua")
 Import("other/sdl/sdl.lua")
@@ -8,7 +8,7 @@ Import("other/freetype/freetype.lua")
 config = NewConfig()
 config:Add(OptCCompiler("compiler"))
 config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-protector -fstack-protector-all"))
-config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk"))
+config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.6 -isysroot /Developer/SDKs/MacOSX10.6.sdk"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
@@ -17,6 +17,7 @@ config:Finalize("config.lua")
 generated_src_dir = "build/src"
 generated_icon_dir = "build/icons"
 builddir = "build/%(arch)s/%(conf)s"
+content_src_dir = "datasrc/"
 
 -- data compiler
 function Python(name)
@@ -75,7 +76,7 @@ function ContentCompile(action, output)
 end
 
 
-function GenerateCommonSettings(settings)
+function GenerateCommonSettings(settings, conf, arch, compiler)
 	if compiler == "gcc" or compiler == "clang" then
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")
 	end
@@ -92,15 +93,16 @@ function GenerateCommonSettings(settings)
 		zlib = Compile(settings, Collect("src/engine/external/zlib/*.c"))
 	end
 
+	local md5 = Compile(settings, Collect("src/engine/external/md5/*.c"))
 	local wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	local png = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
 	local json = Compile(settings, Collect("src/engine/external/json-parser/*.c"))
 
 	-- globally available libs
-	libs = {zlib=zlib, wavpack=wavpack, png=png, json=json}
+	libs = {zlib=zlib, wavpack=wavpack, png=png, md5=md5, json=json}
 end
 
-function GenerateMacOSXSettings(settings, conf, arch)
+function GenerateMacOSXSettings(settings, conf, arch, compiler)
 	if arch == "x86" then
 		settings.cc.flags:Add("-arch i386")
 		settings.link.flags:Add("-arch i386")
@@ -118,17 +120,17 @@ function GenerateMacOSXSettings(settings, conf, arch)
 		os.exit(1)
 	end
 
-	settings.cc.flags:Add("-mmacosx-version-min=10.5")
-	settings.link.flags:Add("-mmacosx-version-min=10.5")
+	settings.cc.flags:Add("-mmacosx-version-min=10.6")
+	settings.link.flags:Add("-mmacosx-version-min=10.6")
 	if config.minmacosxsdk.value == 1 then
-		settings.cc.flags:Add("-isysroot /Developer/SDKs/MacOSX10.5.sdk")
-		settings.link.flags:Add("-isysroot /Developer/SDKs/MacOSX10.5.sdk")
+		settings.cc.flags:Add("-isysroot /Developer/SDKs/MacOSX10.6.sdk")
+		settings.link.flags:Add("-isysroot /Developer/SDKs/MacOSX10.6.sdk")
 	end
 
 	settings.link.frameworks:Add("Carbon")
 	settings.link.frameworks:Add("AppKit")
 
-	GenerateCommonSettings(settings, conf, arch)
+	GenerateCommonSettings(settings, conf, arch, compiler)
 
 	-- Build server launcher before adding game stuff
 	local serverlaunch = Link(settings, "serverlaunch", Compile(settings, "src/osxlaunch/server.m"))
@@ -152,24 +154,28 @@ function GenerateMacOSXSettings(settings, conf, arch)
 	settings.link.frameworks:Add("AGL")
 	-- FIXME: the SDL config is applied in BuildClient too but is needed here before so the launcher will compile
 	config.sdl:Apply(settings)
-	settings.link.extrafiles:Merge(Compile(settings, "src/osxlaunch/client.m"))
 	BuildClient(settings)
+
+	-- Content
+	BuildContent(settings)
 end
 
-function GenerateLinuxSettings(settings, conf, arch)
+function GenerateLinuxSettings(settings, conf, arch, compiler)
 	if arch == "x86" then
 		settings.cc.flags:Add("-m32")
 		settings.link.flags:Add("-m32")
 	elseif arch == "x86_64" then
 		settings.cc.flags:Add("-m64")
 		settings.link.flags:Add("-m64")
+	elseif arch == "armv7l" then
+		-- arm 32 bit
 	else
 		print("Unknown Architecture '" .. arch .. "'. Supported: x86, x86_64")
 		os.exit(1)
 	end
 	settings.link.libs:Add("pthread")
 
-	GenerateCommonSettings(settings, conf, arch)
+	GenerateCommonSettings(settings, conf, arch, compiler)
 
 	-- Master server, version server and tools
 	BuildEngineCommon(settings)
@@ -188,13 +194,16 @@ function GenerateLinuxSettings(settings, conf, arch)
 	settings.link.libs:Add("GL")
 	settings.link.libs:Add("GLU")
 	BuildClient(settings)
+
+	-- Content
+	BuildContent(settings)
 end
 
-function GenerateSolarisSettings(settings, conf, arch)
+function GenerateSolarisSettings(settings, conf, arch, compiler)
 	settings.link.libs:Add("socket")
 	settings.link.libs:Add("nsl")
 
-	GenerateLinuxSettings(settings, conf, arch)
+	GenerateLinuxSettings(settings, conf, arch, compiler)
 end
 
 function GenerateWindowsSettings(settings, conf, target_arch, compiler)
@@ -204,15 +213,9 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 			print("Cross compiling is unsupported on Windows.")
 			os.exit(1)
 		end
-		settings.cc.flags:Add("/wd4244")
+		settings.cc.flags:Add("/wd4244", "/wd4577")
 	elseif compiler == "gcc" or config.compiler.driver == "clang" then
-		if target_arch == "x86" then
-			settings.cc.flags:Add("-m32")
-			settings.link.flags:Add("-m32")
-		elseif target_arch == "x86_64" then
-			settings.cc.flags:Add("-m64")
-			settings.link.flags:Add("-m64")
-		else
+		if target_arch ~= "x86" and target_arch ~= "x86_64" then
 			print("Unknown Architecture '" .. arch .. "'. Supported: x86, x86_64")
 			os.exit(1)
 		end
@@ -230,8 +233,9 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 	settings.link.libs:Add("ws2_32")
 	settings.link.libs:Add("ole32")
 	settings.link.libs:Add("shell32")
+	settings.link.libs:Add("advapi32")
 
-	GenerateCommonSettings(settings, conf, target_arch)
+	GenerateCommonSettings(settings, conf, target_arch, compiler)
 
 	-- Master server, version server and tools
 	BuildEngineCommon(settings)
@@ -253,6 +257,9 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 	settings.link.libs:Add("glu32")
 	settings.link.libs:Add("winmm")
 	BuildClient(settings)
+
+	-- Content
+	BuildContent(settings)
 end
 
 function SharedCommonFiles()
@@ -324,7 +331,7 @@ function BuildClient(settings, family, platform)
 	local game_client = Compile(settings, CollectRecursive("src/game/client/*.cpp"), SharedClientFiles())
 	local game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
 	
-	Link(settings, "teeworlds", libs["zlib"], libs["wavpack"], libs["png"], libs["json"], client, game_client, game_editor)
+	Link(settings, "teeworlds", libs["zlib"], libs["md5"], libs["wavpack"], libs["png"], libs["json"], client, game_client, game_editor)
 end
 
 function BuildServer(settings, family, platform)
@@ -332,24 +339,30 @@ function BuildServer(settings, family, platform)
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
 	
-	return Link(settings, "teeworlds_srv", libs["zlib"], server, game_server)
+	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], server, game_server)
 end
 
 function BuildTools(settings)
 	local tools = {}
 	for i,v in ipairs(Collect("src/tools/*.cpp", "src/tools/*.c")) do
 		local toolname = PathFilename(PathBase(v))
-		tools[i] = Link(settings, toolname, Compile(settings, v), libs["zlib"], libs["wavpack"], libs["png"])
+		tools[i] = Link(settings, toolname, Compile(settings, v), libs["zlib"], libs["md5"], libs["wavpack"], libs["png"])
 	end
 	PseudoTarget(settings.link.Output(settings, "pseudo_tools") .. settings.link.extension, tools)
 end
 
 function BuildMasterserver(settings)
-	return Link(settings, "mastersrv", Compile(settings, Collect("src/mastersrv/*.cpp")), libs["zlib"])
+	return Link(settings, "mastersrv", Compile(settings, Collect("src/mastersrv/*.cpp")), libs["zlib"], libs["md5"])
 end
 
 function BuildVersionserver(settings)
-	return Link(settings, "versionsrv", Compile(settings, Collect("src/versionsrv/*.cpp")), libs["zlib"])
+	return Link(settings, "versionsrv", Compile(settings, Collect("src/versionsrv/*.cpp")), libs["zlib"], libs["md5"])
+end
+
+function BuildContent(settings)
+	local content = {}
+	table.insert(content, CopyToDir(settings.link.Output(settings, "data"), CollectRecursive(content_src_dir .. "*.png", content_src_dir .. "*.wv", content_src_dir .. "*.ttf", content_src_dir .. "*.txt", content_src_dir .. "*.map", content_src_dir .. "*.rules", content_src_dir .. "*.json")))
+	PseudoTarget(settings.link.Output(settings, "content") .. settings.link.extension, content)
 end
 
 -- create all targets for specified configuration & architecture
@@ -364,6 +377,8 @@ function GenerateSettings(conf, arch, builddir, compiler)
 	elseif compiler == "cl" then
 		SetDriversCL(settings)
 	else
+		-- apply compiler settings
+		config.compiler:Apply(settings)
 		compiler = config.compiler.driver
 	end
 	
@@ -397,11 +412,11 @@ function GenerateSettings(conf, arch, builddir, compiler)
 		GenerateWindowsSettings(settings, conf, arch, compiler)
 	elseif family == "unix" then
 		if platform == "macosx" then
-			GenerateMacOSXSettings(settings, conf, arch)
-		elseif platform == "linux" then
-			GenerateLinuxSettings(settings, conf, arch)
+			GenerateMacOSXSettings(settings, conf, arch, compiler)
 		elseif platform == "solaris" then
-			GenerateSolarisSettings(settings, conf, arch)
+			GenerateSolarisSettings(settings, conf, arch, compiler)
+		else -- Linux, BSD
+			GenerateLinuxSettings(settings, conf, arch, compiler)
 		end
 	end
 
@@ -414,6 +429,14 @@ function interp(s, tab)
 			function(k, fmt)
 				return tab[k] and ("%"..fmt):format(tab[k]) or '%('..k..')'..fmt
 			end))
+end
+
+function CopyToDir(dst, ...)
+	local output = {}
+	for filename in TableWalk({...}) do
+		table.insert(output, CopyFile(PathJoin(dst, string.sub(filename, string.len(content_src_dir)+1)), filename))
+	end
+	return output
 end
 
 function split(str, sep)
@@ -453,7 +476,7 @@ end
 
 targets = {client="teeworlds", server="teeworlds_srv",
            versionserver="versionsrv", masterserver="mastersrv",
-           tools="pseudo_tools"}
+           tools="pseudo_tools", content="content"}
 
 subtargets = {}
 for t, cur_target in pairs(targets) do
@@ -473,5 +496,5 @@ for cur_name, cur_target in pairs(targets) do
 	PseudoTarget(cur_name, subtargets[cur_target])
 end
 
-PseudoTarget("game", "client", "server")
+PseudoTarget("game", "client", "server", "content")
 DefaultTarget("game")

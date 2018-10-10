@@ -30,6 +30,27 @@ CMapLayers::CMapLayers(int t)
 	m_pMenuLayers = 0;
 }
 
+void CMapLayers::LoadBackgroundMap()
+{
+	int HourOfTheDay = time_houroftheday();
+	char aBuf[128];
+	str_format(aBuf, sizeof(aBuf), "ui/%s_%s.map", g_Config.m_ClMenuMap, (HourOfTheDay >= 6 && HourOfTheDay < 18) ? "day" : "night");
+	if(!m_pMenuMap->Load(aBuf, m_pClient->Storage()))
+	{
+		str_format(aBuf, sizeof(aBuf), "map '%s' not found", g_Config.m_ClMenuMap);
+		Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
+		return;
+	}
+
+	str_format(aBuf, sizeof(aBuf), "loaded map '%s'", g_Config.m_ClMenuMap);
+	Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
+
+	m_pMenuLayers->Init(Kernel(), m_pMenuMap);
+	RenderTools()->RenderTilemapGenerateSkip(m_pMenuLayers);
+	m_pClient->m_pMapimages->OnMenuMapLoad(m_pMenuMap);
+	LoadEnvPoints(m_pMenuLayers, m_lEnvPointsMenu);
+}
+
 void CMapLayers::OnInit()
 {
 	if(m_Type == TYPE_BACKGROUND)
@@ -37,33 +58,14 @@ void CMapLayers::OnInit()
 		m_pMenuLayers = new CLayers;
 		m_pMenuMap = CreateEngineMap();
 
-		char aBuf[128];
-		str_format(aBuf, sizeof(aBuf), "maps/%s.map", g_Config.m_ClBackgroundMap);
-		if(!m_pMenuMap->Load(aBuf, m_pClient->Storage()))
-		{
-			str_format(aBuf, sizeof(aBuf), "map '%s' not found", g_Config.m_ClBackgroundMap);
-			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
-			return;
-		}
-
-		str_format(aBuf, sizeof(aBuf), "loaded map '%s'", g_Config.m_ClBackgroundMap);
-		Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
-
-		m_pMenuLayers->Init(Kernel(), m_pMenuMap);
-		RenderTools()->RenderTilemapGenerateSkip(m_pMenuLayers);
-		m_pClient->m_pMapimages->OnMenuMapLoad(m_pMenuMap);
+		LoadBackgroundMap();
 	}
 }
 
 void CMapLayers::OnMapLoad()
 {
-	if(m_Type == TYPE_BACKGROUND)
-	{
-		if(Layers())
-			LoadEnvPoints(Layers(), m_lEnvPoints);
-		else if(m_pMenuLayers)
-			LoadEnvPoints(m_pMenuLayers, m_lEnvPointsMenu);
-	}
+	if(Layers())
+		LoadEnvPoints(Layers(), m_lEnvPoints);
 }
 
 void CMapLayers::LoadEnvPoints(const CLayers *pLayers, array<CEnvPoint>& lEnvPoints)
@@ -246,6 +248,9 @@ void CMapLayers::OnRender()
 			float y0 = (pGroup->m_ClipY - Points[1]) / (Points[3]-Points[1]);
 			float x1 = ((pGroup->m_ClipX+pGroup->m_ClipW) - Points[0]) / (Points[2]-Points[0]);
 			float y1 = ((pGroup->m_ClipY+pGroup->m_ClipH) - Points[1]) / (Points[3]-Points[1]);
+			
+			if(x1 < 0.0f || x0 > 1.0f || y1 < 0.0f || y0 > 1.0f)
+				continue;
 
 			Graphics()->ClipEnable((int)(x0*Graphics()->ScreenWidth()), (int)(y0*Graphics()->ScreenHeight()),
 				(int)((x1-x0)*Graphics()->ScreenWidth()), (int)((y1-y0)*Graphics()->ScreenHeight()));
@@ -283,7 +288,7 @@ void CMapLayers::OnRender()
 					Render = true;
 			}
 
-			if(Render && pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyPressed(KEY_LCTRL) && Input()->KeyPressed(KEY_LSHIFT) && Input()->KeyDown(KEY_KP0))
+			if(Render && pLayer->m_Type == LAYERTYPE_TILES && Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_KP_0))
 			{
 				CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
 				CTile *pTiles = (CTile *)pLayers->Map()->GetData(pTMap->m_Data);
@@ -306,8 +311,6 @@ void CMapLayers::OnRender()
 
 			if(Render && !IsGameLayer)
 			{
-				//layershot_begin();
-
 				if(pLayer->m_Type == LAYERTYPE_TILES)
 				{
 					CMapItemLayerTilemap *pTMap = (CMapItemLayerTilemap *)pLayer;
@@ -335,13 +338,11 @@ void CMapLayers::OnRender()
 
 					CQuad *pQuads = (CQuad *)pLayers->Map()->GetDataSwapped(pQLayer->m_Data);
 
-					Graphics()->BlendNone();
-					RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_OPAQUE, EnvelopeEval, this);
+					//Graphics()->BlendNone();
+					//RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_OPAQUE, EnvelopeEval, this);
 					Graphics()->BlendNormal();
 					RenderTools()->RenderQuads(pQuads, pQLayer->m_NumQuads, LAYERRENDERFLAG_TRANSPARENT, EnvelopeEval, this);
 				}
-
-				//layershot_end();
 			}
 		}
 		if(!g_Config.m_GfxNoclip)
@@ -364,30 +365,16 @@ void CMapLayers::ConchainBackgroundMap(IConsole::IResult *pResult, void *pUserDa
 
 void CMapLayers::OnConsoleInit()
 {
-	Console()->Chain("cl_background_map", ConchainBackgroundMap, this);
+	Console()->Chain("cl_menu_map", ConchainBackgroundMap, this);
 }
 
 void CMapLayers::BackgroundMapUpdate()
 {
 	if(m_Type == TYPE_BACKGROUND && m_pMenuMap)
 	{
-		// uload map
+		// unload map
 		m_pMenuMap->Unload();
 
-		char aBuf[128];
-		str_format(aBuf, sizeof(aBuf), "maps/%s.map", g_Config.m_ClBackgroundMap);
-		if(!m_pMenuMap->Load(aBuf, m_pClient->Storage()))
-		{
-			str_format(aBuf, sizeof(aBuf), "map '%s' not found", g_Config.m_ClBackgroundMap);
-			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
-			return;
-		}
-
-		str_format(aBuf, sizeof(aBuf), "loaded map '%s'", g_Config.m_ClBackgroundMap);
-		Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
-
-		m_pMenuLayers->Init(Kernel(), m_pMenuMap);
-		RenderTools()->RenderTilemapGenerateSkip(m_pMenuLayers);
-		m_pClient->m_pMapimages->OnMenuMapLoad(m_pMenuMap);
+		LoadBackgroundMap();
 	}
 }

@@ -1,5 +1,6 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <base/color.h>
 #include <base/math.h>
 
 #include <engine/console.h>
@@ -28,8 +29,8 @@ void CLayerQuads::Render()
 	if(m_Image >= 0 && m_Image < m_pEditor->m_Map.m_lImages.size())
 		Graphics()->TextureSet(m_pEditor->m_Map.m_lImages[m_Image]->m_Texture);
 
-	Graphics()->BlendNone();
-	m_pEditor->RenderTools()->RenderQuads(m_lQuads.base_ptr(), m_lQuads.size(), LAYERRENDERFLAG_OPAQUE, m_pEditor->EnvelopeEval, m_pEditor);
+	//Graphics()->BlendNone();
+	//m_pEditor->RenderTools()->RenderQuads(m_lQuads.base_ptr(), m_lQuads.size(), LAYERRENDERFLAG_OPAQUE, m_pEditor->EnvelopeEval, m_pEditor);
 	Graphics()->BlendNormal();
 	m_pEditor->RenderTools()->RenderQuads(m_lQuads.base_ptr(), m_lQuads.size(), LAYERRENDERFLAG_TRANSPARENT, m_pEditor->EnvelopeEval, m_pEditor);
 }
@@ -80,6 +81,7 @@ CQuad *CLayerQuads::NewQuad()
 void CLayerQuads::BrushSelecting(CUIRect Rect)
 {
 	// draw selection rectangle
+	vec4 RectColor = HexToRgba(g_Config.m_EdColorSelectionQuad);
 	IGraphics::CLineItem Array[4] = {
 		IGraphics::CLineItem(Rect.x, Rect.y, Rect.x+Rect.w, Rect.y),
 		IGraphics::CLineItem(Rect.x+Rect.w, Rect.y, Rect.x+Rect.w, Rect.y+Rect.h),
@@ -87,6 +89,7 @@ void CLayerQuads::BrushSelecting(CUIRect Rect)
 		IGraphics::CLineItem(Rect.x, Rect.y+Rect.h, Rect.x, Rect.y)};
 	Graphics()->TextureClear();
 	Graphics()->LinesBegin();
+	Graphics()->SetColor(RectColor.r*RectColor.a, RectColor.g*RectColor.a, RectColor.b*RectColor.a, RectColor.a);
 	Graphics()->LinesDraw(Array, 4);
 	Graphics()->LinesEnd();
 }
@@ -179,7 +182,7 @@ void CLayerQuads::BrushRotate(float Amount)
 	}
 }
 
-void CLayerQuads::GetSize(float *w, float *h)
+void CLayerQuads::GetSize(float *w, float *h) const
 {
 	*w = 0; *h = 0;
 

@@ -102,7 +102,7 @@ void CTilesetMapper::Load(const json_value &rElement)
 	}
 }
 
-const char* CTilesetMapper::GetRuleSetName(int Index)
+const char* CTilesetMapper::GetRuleSetName(int Index) const
 {
 	if(Index < 0 || Index >= m_aRuleSets.size())
 		return "";
@@ -161,7 +161,7 @@ void CTilesetMapper::Proceed(CLayerTiles *pLayer, int ConfigID)
 					}
 				}
 
-				if(RespectRules && (pConf->m_aRules[i].m_Random <= 1 || (int)((float)rand() / ((float)RAND_MAX + 1) * pConf->m_aRules[i].m_Random) == 1))
+				if(RespectRules && (pConf->m_aRules[i].m_Random <= 1 || (int)(frandom() * pConf->m_aRules[i].m_Random) == 1))
 				{
 					pTile->m_Index = pConf->m_aRules[i].m_Index;
 					pTile->m_Flags = 0;
@@ -310,7 +310,7 @@ void CDoodadsMapper::Load(const json_value &rElement)
 		qsort(m_aRuleSets[i].m_aRules.base_ptr(), m_aRuleSets[i].m_aRules.size(), sizeof(m_aRuleSets[i].m_aRules[0]), CompareRules);
 }
 
-const char* CDoodadsMapper::GetRuleSetName(int Index)
+const char* CDoodadsMapper::GetRuleSetName(int Index) const
 {
 	if(Index < 0 || Index >= m_aRuleSets.size())
 		return "";

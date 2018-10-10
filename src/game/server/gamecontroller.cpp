@@ -188,11 +188,14 @@ void IGameController::DoTeamBalance()
 		}
 
 		// move the player to the other team
-		int Temp = pPlayer->m_LastActionTick;
-		DoTeamChange(pPlayer, BiggerTeam^1);
-		pPlayer->m_LastActionTick = Temp;
-		pPlayer->Respawn();
-		GameServer()->SendGameMsg(GAMEMSG_TEAM_BALANCE_VICTIM, pPlayer->GetTeam(), pPlayer->GetCID());
+		if(pPlayer)
+		{
+			int Temp = pPlayer->m_LastActionTick;
+			DoTeamChange(pPlayer, BiggerTeam^1);
+			pPlayer->m_LastActionTick = Temp;
+			pPlayer->Respawn();
+			GameServer()->SendGameMsg(GAMEMSG_TEAM_BALANCE_VICTIM, pPlayer->GetTeam(), pPlayer->GetCID());
+		}
 	}
 	while(--NumBalance);
 
@@ -258,6 +261,10 @@ void IGameController::OnCharacterSpawn(CCharacter *pChr)
 	}
 }
 
+void IGameController::OnFlagReturn(CFlag *pFlag)
+{
+}
+
 bool IGameController::OnEntity(int Index, vec2 Pos)
 {
 	// don't add pickups in survival
@@ -302,8 +309,7 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 
 	if(Type != -1)
 	{
-		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type);
-		pPickup->m_Pos = Pos;
+		new CPickup(&GameServer()->m_World, Type, Pos);
 		return true;
 	}
 
@@ -975,7 +981,7 @@ float IGameController::EvaluateSpawnPos(CSpawnEval *pEval, vec2 Pos) const
 		if(pEval->m_FriendlyTeam != -1 && pC->GetPlayer()->GetTeam() == pEval->m_FriendlyTeam)
 			Scoremod = 0.5f;
 
-		float d = distance(Pos, pC->m_Pos);
+		float d = distance(Pos, pC->GetPos());
 		Score += Scoremod * (d == 0 ? 1000000000.0f : 1.0f/d);
 	}
 
@@ -997,7 +1003,7 @@ void IGameController::EvaluateSpawnType(CSpawnEval *pEval, int Type) const
 			Result = Index;
 			for(int c = 0; c < Num; ++c)
 				if(GameServer()->Collision()->CheckPoint(m_aaSpawnPoints[Type][i]+Positions[Index]) ||
-					distance(aEnts[c]->m_Pos, m_aaSpawnPoints[Type][i]+Positions[Index]) <= aEnts[c]->m_ProximityRadius)
+					distance(aEnts[c]->GetPos(), m_aaSpawnPoints[Type][i]+Positions[Index]) <= aEnts[c]->GetProximityRadius())
 				{
 					Result = -1;
 					break;
@@ -1107,6 +1113,10 @@ void IGameController::DoTeamChange(CPlayer *pPlayer, int Team, bool DoChatMsg)
 	}
 	OnPlayerInfoChange(pPlayer);
 	GameServer()->OnClientTeamChange(ClientID);
+
+	// reset inactivity counter when joining the game
+	if(OldTeam == TEAM_SPECTATORS)
+		pPlayer->m_InactivityTickCounter = 0;
 }
 
 int IGameController::GetStartTeam()

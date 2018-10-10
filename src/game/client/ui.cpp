@@ -46,14 +46,14 @@ int CUI::Update(float Mx, float My, float Mwx, float Mwy, int Buttons)
 	return 0;
 }
 
-int CUI::MouseInside(const CUIRect *r)
+int CUI::MouseInside(const CUIRect *r) const
 {
 	if(m_MouseX >= r->x && m_MouseX < r->x+r->w && m_MouseY >= r->y && m_MouseY < r->y+r->h)
 		return 1;
 	return 0;
 }
 
-void CUI::ConvertMouseMove(float *x, float *y)
+void CUI::ConvertMouseMove(float *x, float *y) const
 {
 	float Fac = (float)(g_Config.m_UiMousesens)/g_Config.m_InpMousesens;
 	*x = *x*Fac;
@@ -79,7 +79,7 @@ float CUI::PixelSize()
 	return Screen()->w/Graphics()->ScreenWidth();
 }
 
-float CUI::Scale()
+float CUI::Scale() const
 {
 	return 1.0f;
 }
@@ -275,7 +275,7 @@ int CUI::DoButtonLogic(const void *pID, const char *pText, int Checked, const CU
 	int Inside = MouseInside(pRect);
 	static int ButtonUsed = 0;
 
-	if(ActiveItem() == pID)
+	if(CheckActiveItem(pID))
 	{
 		if(!MouseButton(ButtonUsed))
 		{
@@ -309,7 +309,7 @@ int CUI::DoPickerLogic(const void *pID, const CUIRect *pRect, float *pX, float *
 {
 	int Inside = MouseInside(pRect);
 
-	if(ActiveItem() == pID)
+	if(CheckActiveItem(pID))
 	{
 		if(!MouseButton(0))
 			SetActiveItem(0);
@@ -319,10 +319,11 @@ int CUI::DoPickerLogic(const void *pID, const CUIRect *pRect, float *pX, float *
 		if(MouseButton(0))
 			SetActiveItem(pID);
 	}
-	else if(Inside)
+	
+	if(Inside)
 		SetHotItem(pID);
 
-	if(ActiveItem() != pID)
+	if(!CheckActiveItem(pID))
 		return 0;
 
 	if(pX)

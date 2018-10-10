@@ -45,9 +45,9 @@ void CPlayers::RenderHand(CTeeRenderInfo *pInfo, vec2 CenterPos, vec2 Dir, float
 	HandPos += DirY * PostRotOffset.y;
 
 	//Graphics()->TextureSet(data->m_aImages[IMAGE_CHAR_DEFAULT].id);
-	Graphics()->TextureSet(pInfo->m_aTextures[CSkins::SKINPART_HANDS]);
+	Graphics()->TextureSet(pInfo->m_aTextures[SKINPART_HANDS]);
 	Graphics()->QuadsBegin();
-	vec4 Color = pInfo->m_aColors[CSkins::SKINPART_HANDS];
+	vec4 Color = pInfo->m_aColors[SKINPART_HANDS];
 	Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
 
 	// two passes
@@ -169,10 +169,10 @@ void CPlayers::RenderHook(
 		RenderTools()->SelectSprite(SPRITE_HOOK_CHAIN);
 		IGraphics::CQuadItem Array[1024];
 		int i = 0;
-		for(float f = 24; f < d && i < 1024; f += 24, i++)
+		for(float f = 16; f < d && i < 1024; f += 16, i++)
 		{
 			vec2 p = HookPos + Dir*f;
-			Array[i] = IGraphics::CQuadItem(p.x, p.y,24,16);
+			Array[i] = IGraphics::CQuadItem(p.x, p.y,16,16);
 		}
 
 		Graphics()->QuadsDraw(Array, i);
@@ -204,6 +204,10 @@ void CPlayers::RenderPlayer(
 
 	float IntraTick = Client()->IntraGameTick();
 
+	if(Prev.m_Angle < pi*-128 && Player.m_Angle > pi*128)
+		Prev.m_Angle += 2*pi*256;
+	else if(Prev.m_Angle > pi*128 && Player.m_Angle < pi*-128)
+		Player.m_Angle += 2*pi*256;
 	float Angle = mix((float)Prev.m_Angle, (float)Player.m_Angle, IntraTick)/256.0f;
 
 	//float angle = 0;
@@ -362,7 +366,7 @@ void CPlayers::RenderPlayer(
 			// HADOKEN
 			if ((Client()->GameTick()-Player.m_AttackTick) <= (SERVER_TICK_SPEED / 6) && g_pData->m_Weapons.m_aId[iw].m_NumSpriteMuzzles)
 			{
-				int IteX = rand() % g_pData->m_Weapons.m_aId[iw].m_NumSpriteMuzzles;
+				int IteX = random_int() % g_pData->m_Weapons.m_aId[iw].m_NumSpriteMuzzles;
 				static int s_LastIteX = IteX;
 				if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 				{
@@ -424,7 +428,7 @@ void CPlayers::RenderPlayer(
 					Alpha = mix(2.0f, 0.0f, min(1.0f,max(0.0f,t)));
 				}
 
-				int IteX = rand() % g_pData->m_Weapons.m_aId[iw].m_NumSpriteMuzzles;
+				int IteX = random_int() % g_pData->m_Weapons.m_aId[iw].m_NumSpriteMuzzles;
 				static int s_LastIteX = IteX;
 				if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 				{
@@ -471,7 +475,7 @@ void CPlayers::RenderPlayer(
 	{
 		vec2 GhostPosition = mix(vec2(pPrevChar->m_X, pPrevChar->m_Y), vec2(pPlayerChar->m_X, pPlayerChar->m_Y), Client()->IntraGameTick());
 		CTeeRenderInfo Ghost = RenderInfo;
-		for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+		for(int p = 0; p < NUM_SKINPARTS; p++)
 			Ghost.m_aColors[p].a *= 0.5f;
 		RenderTools()->RenderTee(&State, &Ghost, Player.m_Emote, Direction, GhostPosition); // render ghost
 	}
@@ -536,18 +540,18 @@ void CPlayers::OnRender()
 			if(Skin != -1)
 			{
 				const CSkins::CSkin *pNinja = m_pClient->m_pSkins->Get(Skin);
-				for(int p = 0; p < CSkins::NUM_SKINPARTS; p++)
+				for(int p = 0; p < NUM_SKINPARTS; p++)
 				{
 					if(IsTeamplay)
 					{
 						m_aRenderInfo[i].m_aTextures[p] = pNinja->m_apParts[p]->m_ColorTexture;
 						int ColorVal = m_pClient->m_pSkins->GetTeamColor(true, pNinja->m_aPartColors[p], m_pClient->m_aClients[i].m_Team, p);
-						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(ColorVal, p==CSkins::SKINPART_MARKING);
+						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(ColorVal, p==SKINPART_MARKING);
 					}
 					else if(pNinja->m_aUseCustomColors[p])
 					{
 						m_aRenderInfo[i].m_aTextures[p] = pNinja->m_apParts[p]->m_ColorTexture;
-						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(pNinja->m_aPartColors[p], p==CSkins::SKINPART_MARKING);
+						m_aRenderInfo[i].m_aColors[p] = m_pClient->m_pSkins->GetColorV4(pNinja->m_aPartColors[p], p==SKINPART_MARKING);
 					}
 					else
 					{

@@ -13,6 +13,7 @@ public:
 	};
 
 	float m_Min, m_Max;
+	float m_MinRange, m_MaxRange;
 	float m_aValues[MAX_VALUES];
 	float m_aColors[MAX_VALUES][3];
 	int m_Index;
@@ -70,6 +71,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	};
 
 	class CNetClient m_NetClient;
+	class CNetClient m_ContactClient;
 	class CDemoPlayer m_DemoPlayer;
 	class CDemoRecorder m_DemoRecorder;
 	class CServerBrowser m_ServerBrowser;
@@ -161,7 +163,6 @@ class CClient : public IClient, public CDemoPlayer::IListner
 
 	//
 	class CServerInfo m_CurrentServerInfo;
-	int64 m_CurrentServerInfoRequestTime; // >= 0 should request, == -1 got info
 
 	// version info
 	struct CVersionInfo
@@ -176,10 +177,6 @@ class CClient : public IClient, public CDemoPlayer::IListner
 		int m_State;
 		class CHostLookup m_VersionServeraddr;
 	} m_VersionInfo;
-
-	volatile int m_GfxState;
-	static void GraphicsThreadProxy(void *pThis) { ((CClient*)pThis)->GraphicsThread(); }
-	void GraphicsThread();
 
 	int64 TickStartTime(int Tick);
 
@@ -201,24 +198,24 @@ public:
 	void SendEnterGame();
 	void SendReady();
 
-	virtual bool RconAuthed() { return m_RconAuthed != 0; }
-	virtual bool UseTempRconCommands() { return m_UseTempRconCommands != 0; }
+	virtual bool RconAuthed() const { return m_RconAuthed != 0; }
+	virtual bool UseTempRconCommands() const { return m_UseTempRconCommands != 0; }
 	void RconAuth(const char *pName, const char *pPassword);
 	virtual void Rcon(const char *pCmd);
 
-	virtual bool ConnectionProblems();
+	virtual bool ConnectionProblems() const;
 
-	virtual bool SoundInitFailed() { return m_SoundInitFailed; }
+	virtual bool SoundInitFailed() const { return m_SoundInitFailed; }
 
-	virtual IGraphics::CTextureHandle GetDebugFont() { return m_DebugFont; }
+	virtual IGraphics::CTextureHandle GetDebugFont() const { return m_DebugFont; }
 
 	void DirectInput(int *pInput, int Size);
 	void SendInput();
 
 	// TODO: OPT: do this alot smarter!
-	virtual int *GetInput(int Tick);
+	virtual const int *GetInput(int Tick) const;
 
-	const char *LatestVersion();
+	const char *LatestVersion() const;
 	void VersionUpdate();
 
 	// ------ state handling -----
@@ -233,17 +230,16 @@ public:
 	virtual void Disconnect();
 
 
-	virtual void GetServerInfo(CServerInfo *pServerInfo);
-	void ServerInfoRequest();
+	virtual void GetServerInfo(CServerInfo *pServerInfo) const;
 
 	int LoadData();
 
 	// ---
 
-	void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem);
+	const void *SnapGetItem(int SnapID, int Index, CSnapItem *pItem) const;
 	void SnapInvalidateItem(int SnapID, int Index);
-	void *SnapFindItem(int SnapID, int Type, int ID);
-	int SnapNumItems(int SnapID);
+	const void *SnapFindItem(int SnapID, int Type, int ID) const;
+	int SnapNumItems(int SnapID) const;
 	void *SnapNewItem(int Type, int ID, int Size);
 	void SnapSetStaticsize(int ItemType, int Size);
 
@@ -252,18 +248,20 @@ public:
 
 	virtual void Quit();
 
-	virtual const char *ErrorString();
+	virtual const char *ErrorString() const;
 
 	const char *LoadMap(const char *pName, const char *pFilename, unsigned WantedCrc);
 	const char *LoadMapSearch(const char *pMapName, int WantedCrc);
 
 	static int PlayerScoreComp(const void *a, const void *b);
 
+	int UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken);
 	void ProcessConnlessPacket(CNetChunk *pPacket);
 	void ProcessServerPacket(CNetChunk *pPacket);
 
-	virtual int MapDownloadAmount() { return m_MapdownloadAmount; }
-	virtual int MapDownloadTotalsize() { return m_MapdownloadTotalsize; }
+	virtual const char *MapDownloadName() const { return m_aMapdownloadName; }
+	virtual int MapDownloadAmount() const { return m_MapdownloadAmount; }
+	virtual int MapDownloadTotalsize() const { return m_MapdownloadTotalsize; }
 
 	void PumpNetwork();
 
@@ -293,6 +291,10 @@ public:
 	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
 	static void Con_AddDemoMarker(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainServerBrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainFullscreen(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainWindowBordered(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainWindowScreen(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainWindowVSync(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 	void RegisterCommands();
 
@@ -307,5 +309,15 @@ public:
 	void AutoScreenshot_Cleanup();
 
 	void ServerBrowserUpdate();
+
+	// gfx
+	void SwitchWindowScreen(int Index);
+	void ToggleFullscreen();
+	void ToggleWindowBordered();
+	void ToggleWindowVSync();
+
+	// Teeworlds connect link
+	const char * const m_pConLinkIdentifier;
+	void HandleTeeworldsConnectLink(const char *pConLink);
 };
 #endif
