@@ -146,6 +146,7 @@ private:
 		PAGE_SETTINGS,
 		PAGE_SYSTEM,
 		PAGE_START,
+		PAGE_BLA,
 
 		PAGE_BROWSER_BROWSER=0,
 		PAGE_BROWSER_FRIENDS,
@@ -157,6 +158,13 @@ private:
 		SETTINGS_CONTROLS,
 		SETTINGS_GRAPHICS,
 		SETTINGS_SOUND,
+
+        BLA_SETTINGS_GENERAL=0,
+		BLA_SETTINGS_EXTRAS,
+		BLA_SETTINGS_HUD,
+		BLA_SETTINGS_DUMMY,
+		BLA_SETTINGS_TEXTURE,
+		BLA_SETTINGS_INFO,
 	};
 
 	int m_GamePage;
@@ -485,6 +493,15 @@ private:
 	// found in menus_demo.cpp
 	void RenderDemoPlayer(CUIRect MainView);
 	void RenderDemoList(CUIRect MainView);
+
+    // found in menus_bla.cpp
+	void RenderBlaSettingsGeneral(CUIRect MainView);
+	void RenderBlaSettingsExtras(CUIRect MainView);
+	void RenderBlaSettingsHud(CUIRect MainView);
+	void RenderBlaSettingsDummy(CUIRect MainView);
+	void RenderBlaSettingsTexture(CUIRect MainView);
+	void RenderBlaSettingsInfo(CUIRect MainView);
+ 	void RenderBla(CUIRect MainView);
 
 	// found in menus_start.cpp
 	void RenderStartMenu(CUIRect MainView);
