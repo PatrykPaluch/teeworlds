@@ -50,21 +50,25 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 	Functions.HSplitTop(ButtonHeight, &Label, &Functions);
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, Localize("Functions"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+
     Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
 	static CButtonContainer s_Bdadash;
 	if(DoButton_CheckBox(&s_Bdadash, Localize("Bdadash feature (Pew Pew!)"), g_Config.m_Bdadash, &Button))
 		g_Config.m_Bdadash ^= 1;
+
 	Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
     static CButtonContainer s_Admin;
 	if(DoButton_CheckBox(&s_Admin, Localize("Show admin icon in scoreboard"), g_Config.m_AdminIcon, &Button))
 		g_Config.m_AdminIcon ^= 1;
+
 	Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
 	static CButtonContainer s_HealthBar;
 	if(DoButton_CheckBox(&s_HealthBar, Localize("Show health & ammo bar over tee "), g_Config.m_HealthBar, &Button))
 		g_Config.m_HealthBar ^= 1;
+
 	Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
 
@@ -75,17 +79,54 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 	Effect.HSplitTop(Spacing, 0, &Effect);
 	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
 	static CButtonContainer s_Blood;
-	if(DoButton_CheckBox(&s_Blood, Localize("Bloodmod"), g_Config.m_Blood, &Button))
+	if(DoButton_CheckBox(&s_Blood, Localize("Death blood"), g_Config.m_Blood, &Button))
 		g_Config.m_Blood ^= 1;
-	if(g_Config.m_Blood)
-	{
-        Effect.HSplitTop(Spacing, 0, &Effect);
-        Effect.HSplitTop(ButtonHeight, &Button, &Effect);
-        static CButtonContainer s_BloodDamage;
-        if(DoButton_CheckBox(&s_BloodDamage, Localize("Damage blood"), g_Config.m_BloodDamage, &Button))
-            g_Config.m_BloodDamage ^= 1;
-	}
+
+    Effect.HSplitTop(Spacing, 0, &Effect);
+    Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+    Button.VSplitLeft(ButtonHeight, 0, &Button);
+    static CButtonContainer s_BloodDamage;
+    if(DoButton_CheckBox(&s_BloodDamage, Localize("Damage blood"), g_Config.m_BloodDamage, &Button))
+        g_Config.m_BloodDamage ^= 1;
+
+	Effect.HSplitTop(Spacing, 0, &Effect);
+	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+	static int s_RainbowBody = 0;
+	if(DoButton_CheckBox(&s_RainbowBody, Localize("Rainbow body"), g_Config.m_ClRainbowBody, &Button))
+		g_Config.m_ClRainbowBody ^= 1;
+
+	Effect.HSplitTop(Spacing, 0, &Effect);
+	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+	static int s_RainbowFeet = 0;
+	if(DoButton_CheckBox(&s_RainbowFeet, Localize("Rainbow feet"), g_Config.m_ClRainbowFeet, &Button))
+		g_Config.m_ClRainbowFeet ^= 1;
+
+	Effect.HSplitTop(Spacing, 0, &Effect);
+	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+	static int s_RainbowHands = 0;
+	if(DoButton_CheckBox(&s_RainbowHands, Localize("Rainbow hands"), g_Config.m_ClRainbowHands, &Button))
+		g_Config.m_ClRainbowHands ^= 1;
+
+	Effect.HSplitTop(Spacing, 0, &Effect);
+	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+	static int s_RainbowDecoration = 0;
+	if(DoButton_CheckBox(&s_RainbowDecoration, Localize("Rainbow decoration"), g_Config.m_ClRainbowDecoration, &Button))
+		g_Config.m_ClRainbowDecoration ^= 1;
+
+	Effect.HSplitTop(Spacing, 0, &Effect);
+	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+	static int s_RainbowMarking = 0;
+	if(DoButton_CheckBox(&s_RainbowMarking, Localize("Rainbow marking"), g_Config.m_ClRainbowMarking, &Button))
+		g_Config.m_ClRainbowMarking ^= 1;
+
+    Effect.HSplitTop(Spacing, 0, &Effect);
+	Effect.HSplitTop(ButtonHeight, &Button, &Effect);
+	static int s_Lightsabers = 0;
+	if(DoButton_CheckBox(&s_Lightsabers, Localize("Lightsabers"), g_Config.m_ClYoda, &Button))
+		g_Config.m_ClYoda ^= 1;
+
 	MainView.HSplitTop(10.0f, 0, &MainView);
+
 }
  void CMenus::RenderBlaSettingsExtras(CUIRect MainView)
 {

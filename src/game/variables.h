@@ -126,9 +126,10 @@ MACRO_CONFIG_INT(Bdadash, bla_bdadash, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "En
 MACRO_CONFIG_INT(HealthBar, bla_health_bar, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Health & ammobar over tee")
 MACRO_CONFIG_INT(DisableQuads, bla_disable_quads, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Disable quads")
 
-//effects
+//blood
 MACRO_CONFIG_INT(Blood, bla_blood, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod")
 MACRO_CONFIG_INT(BloodDamage, bla_blood_damage, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod damage")
+
 //texture changer
 MACRO_CONFIG_STR(GameTexture, bla_game_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gameskin texture")
 MACRO_CONFIG_STR(GameParticles, bla_particle_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Particle texture")
@@ -147,6 +148,14 @@ MACRO_CONFIG_INT(RenderHudIfMenu, bla_hud_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGF
 //other
 MACRO_CONFIG_INT(AdminIcon, bla_admin_icon, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show icon in scoreboard when player is admin")
 MACRO_CONFIG_INT(RenderTime, bla_show_time, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show local time ingame")
+MACRO_CONFIG_INT(ClYoda, bla_yoda, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable lightsabers")
+
+//rainbow
+MACRO_CONFIG_INT(ClRainbowFeet, bla_rainbow_feet, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "")
+MACRO_CONFIG_INT(ClRainbowHands, bla_rainbow_hands, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "")
+MACRO_CONFIG_INT(ClRainbowBody, bla_rainbow_body, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "")
+MACRO_CONFIG_INT(ClRainbowDecoration, bla_rainbow_decoration, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "")
+MACRO_CONFIG_INT(ClRainbowMarking, bla_rainbow_marking, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly

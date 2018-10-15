@@ -3,10 +3,12 @@
 #ifndef GAME_CLIENT_COMPONENTS_PLAYERS_H
 #define GAME_CLIENT_COMPONENTS_PLAYERS_H
 #include <game/client/component.h>
+#include <game/client/lightsaber.h>
 
 class CPlayers : public CComponent
 {
 	CTeeRenderInfo m_aRenderInfo[MAX_CLIENTS];
+	CLightsaber m_aLightsaber[MAX_CLIENTS];
 	void RenderHand(class CTeeRenderInfo *pInfo, vec2 CenterPos, vec2 Dir, float AngleOffset, vec2 PostRotOffset);
 	void RenderPlayer(
 		const CNetObj_Character *pPrevChar,
@@ -22,6 +24,10 @@ class CPlayers : public CComponent
 		const CNetObj_PlayerInfo *pPlayerInfo,
 		int ClientID
 	);
+	 //rainbow
+    vec3 GetColorV3(int v);
+    vec4 GetColorV4(int v);
+    int m_RainbowColor;
 
 public:
 	virtual void OnRender();
