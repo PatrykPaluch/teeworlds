@@ -124,6 +124,7 @@ MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SA
 //functions
 MACRO_CONFIG_INT(Bdadash, bla_bdadash, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable pew pew?")
 MACRO_CONFIG_INT(HealthBar, bla_health_bar, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Health & ammobar over tee")
+MACRO_CONFIG_INT(DisableQuads, bla_disable_quads, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Disable quads")
 
 //effects
 MACRO_CONFIG_INT(Blood, bla_blood, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod")
@@ -145,6 +146,7 @@ MACRO_CONFIG_INT(RenderHudIfMenu, bla_hud_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGF
 
 //other
 MACRO_CONFIG_INT(AdminIcon, bla_admin_icon, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show icon in scoreboard when player is admin")
+
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly

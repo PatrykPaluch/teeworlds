@@ -113,6 +113,11 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 		g_Config.m_ChatFeatures ^= 1;
 	Extras.HSplitTop(Spacing, 0, &Extras);
 	Extras.HSplitTop(ButtonHeight, &Button, &Extras);
+	static CButtonContainer s_DisableQuads;
+	if(DoButton_CheckBox(&s_DisableQuads, Localize("Disable quads"), g_Config.m_DisableQuads, &Button))
+		g_Config.m_DisableQuads ^= 1;
+	Extras.HSplitTop(Spacing, 0, &Extras);
+	Extras.HSplitTop(ButtonHeight, &Button, &Extras);
 }
 
 void CMenus::RenderBlaSettingsHud(CUIRect MainView)

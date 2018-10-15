@@ -4,6 +4,7 @@
 #include <base/math.h>
 #include <base/tl/base.h>
 #include <engine/graphics.h>
+#include <engine/shared/config.h>
 
 #include "render.h"
 
@@ -83,7 +84,7 @@ float SolveBezier(float x, float p0, float p1, float p2, float p3)
 		// cardano's method
 		double p = b/3 - a*a/9;
 		double q = (2*a*a*a/27 - a*b/3 + c)/2;
-		
+
 		double D = q*q + p*p*p;
 
 		if(D > 0.0)
@@ -97,7 +98,7 @@ float SolveBezier(float x, float p0, float p1, float p2, float p3)
 			// one single, one double solution or triple solution
 			double s = CubicRoot(-q);
 			t = 2*s - sub;
-			
+
 			if(0.0 <= t && t <= 1.0001f)
 				return t;
 			else
@@ -180,7 +181,7 @@ void CRenderTools::RenderEvalEnvelope(CEnvPoint *pPoints, int NumPoints, int Cha
 					p3 = vec2(pPoints[i+1].m_Time/1000.0f, fx2f(pPoints[i+1].m_aValues[c]));
 
 					outTang = vec2(pPoints[i].m_aOutTangentdx[c]/1000.0f, fx2f(pPoints[i].m_aOutTangentdy[c]));
-					inTang = -vec2(pPoints[i+1].m_aInTangentdx[c]/1000.0f, fx2f(pPoints[i+1].m_aInTangentdy[c]));					
+					inTang = -vec2(pPoints[i+1].m_aInTangentdx[c]/1000.0f, fx2f(pPoints[i+1].m_aInTangentdy[c]));
 					p1 = p0 + outTang;
 					p2 = p3 - inTang;
 
@@ -197,7 +198,7 @@ void CRenderTools::RenderEvalEnvelope(CEnvPoint *pPoints, int NumPoints, int Cha
 			case CURVETYPE_LINEAR:
 				break;
 			}
-			
+
 			for(int c = 0; c < Channels; c++)
 			{
 				float v0 = fx2f(pPoints[i].m_aValues[c]);
@@ -226,7 +227,10 @@ static void Rotate(CPoint *pCenter, CPoint *pPoint, float Rotation)
 
 void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENVELOPE_EVAL pfnEval, void *pUser)
 {
-	Graphics()->QuadsBegin();
+	if(g_Config.m_DisableQuads)
+        return;
+
+    Graphics()->QuadsBegin();
 	float Conv = 1/255.0f;
 	for(int i = 0; i < NumQuads; i++)
 	{
@@ -248,7 +252,7 @@ void CRenderTools::RenderQuads(CQuad *pQuads, int NumQuads, int RenderFlags, ENV
 		 TODO: Analyze quadtexture
 		if(a < 0.01f || (q->m_aColors[0].a < 0.01f && q->m_aColors[1].a < 0.01f && q->m_aColors[2].a < 0.01f && q->m_aColors[3].a < 0.01f))
 			Opaque = true;
-		
+
 		if(Opaque && !(RenderFlags&LAYERRENDERFLAG_OPAQUE))
 			continue;
 		if(!Opaque && !(RenderFlags&LAYERRENDERFLAG_TRANSPARENT))
