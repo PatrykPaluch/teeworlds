@@ -22,7 +22,7 @@ CHud::CHud()
 {
 	// won't work if zero
 	m_AverageFPS = 1.0f;
-	
+
 	m_WarmupHideTick = 0;
 }
 
@@ -109,7 +109,7 @@ void CHud::RenderStartCountdown()
 
 		if(m_pClient->m_Snap.m_pGameData->m_GameStateEndTick == 0)
 			return;
-		
+
 		FontSize = 16.0f;
 		char aBuf[32];
 		int Seconds = (m_pClient->m_Snap.m_pGameData->m_GameStateEndTick-Client()->GameTick()+SERVER_TICK_SPEED-1)/SERVER_TICK_SPEED;
@@ -314,7 +314,7 @@ void CHud::RenderWarmupTimer()
 		float FontSize = 20.0f;
 		float w = 0.0f;
 		const char *pText = Localize("Warmup");
-		
+
 		if(m_WarmupHideTick == 0 || (time_get() - m_WarmupHideTick) / time_freq() < 10)
 		{
 			w = TextRender()->TextWidth(0, FontSize, pText, -1);
@@ -325,7 +325,7 @@ void CHud::RenderWarmupTimer()
 			TextRender()->TextColor(1, 1, 0.5f, 1);
 			TextRender()->Text(0x0, 10, 45, 8, pText, -1);
 		}
-			
+
 		FontSize = 16.0f;
 		if(m_pClient->m_Snap.m_pGameData->m_GameStateEndTick == 0)
 		{
@@ -348,7 +348,7 @@ void CHud::RenderWarmupTimer()
 			else
 				str_format(aBuf, sizeof(aBuf), "%d", round_to_int(Seconds));
 		}
-		
+
 		if(m_WarmupHideTick == 0 || (time_get() - m_WarmupHideTick) / time_freq() < 10)
 		{
 			w = TextRender()->TextWidth(0, FontSize, aBuf, -1);
@@ -568,9 +568,12 @@ void CHud::OnRender()
 	if(!m_pClient->m_Snap.m_pGameData)
 		return;
 
-	// dont render hud if the menu is active
-	if(m_pClient->m_pMenus->IsActive())
-		return;
+    if(!g_Config.m_RenderHudIfMenu)
+    {
+        // dont render hud if the menu is active
+        if(m_pClient->m_pMenus->IsActive())
+            return;
+    }
 
 	m_Width = 300.0f*Graphics()->ScreenAspect();
 	m_Height = 300.0f;

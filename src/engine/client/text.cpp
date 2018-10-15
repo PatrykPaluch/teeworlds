@@ -678,7 +678,7 @@ public:
 							break;
 						continue;
 					}
-					if(g_Config.m_ClTextColors)
+					if(g_Config.m_TextColors)
 					{
 						if(SkipNext)
 						{

@@ -84,6 +84,44 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 
 void CMenus::RenderBlaSettingsHud(CUIRect MainView)
 {
+    CUIRect Label, Button, General, HUD, BottomView;
+	// cut view
+	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
+	BottomView.HSplitTop(20.f, 0, &BottomView);
+	// render game menu backgrounds
+	int NumOptions = 8.0f;
+	float ButtonHeight = 20.0f;
+	float Spacing = 2.0f;
+	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
+	MainView.HSplitTop(20.0f, 0, &MainView);
+	MainView.HSplitTop(BackgroundHeight, &General, &MainView);
+	RenderTools()->DrawUIRect(&General, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	MainView.HSplitTop(10.0f, 0, &MainView);
+	MainView.HSplitTop(BackgroundHeight, &HUD, &MainView);
+	RenderTools()->DrawUIRect(&HUD, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+
+	// render general menu
+	General.HSplitTop(ButtonHeight, &Label, &General);
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, Localize("General"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+    General.HSplitTop(Spacing, 0, &General);
+	General.HSplitTop(ButtonHeight, &Button, &General);
+	static CButtonContainer s_gChat;
+	if(DoButton_CheckBox(&s_gChat, Localize("Render chat if menu is active"), g_Config.m_RenderChatIfMenu, &Button))
+		g_Config.m_RenderChatIfMenu ^= 1;
+    General.HSplitTop(Spacing, 0, &General);
+	General.HSplitTop(ButtonHeight, &Button, &General);
+	static CButtonContainer s_gMenu;
+	if(DoButton_CheckBox(&s_gMenu, Localize("Render hud if menu is active"), g_Config.m_RenderHudIfMenu, &Button))
+		g_Config.m_RenderHudIfMenu ^= 1;
+
+
+    // render hud menu
+	HUD.HSplitTop(ButtonHeight, &Label, &HUD);
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, Localize("Nothing"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+	HUD.HSplitTop(Spacing, 0, &HUD);
+	HUD.HSplitTop(ButtonHeight, &Button, &HUD);
 }
 void CMenus::RenderBlaSettingsDummy(CUIRect MainView)
 {

@@ -127,14 +127,18 @@ MACRO_CONFIG_INT(Bdadash, bla_bdadash, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "En
 MACRO_CONFIG_INT(Blood, bla_blood, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod")
 MACRO_CONFIG_INT(BloodDamage, bla_blood_damage, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod damage")
 //texture changer
-MACRO_CONFIG_STR(GameTexture, game_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gameskin texture")
-MACRO_CONFIG_STR(GameParticles, particle_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Particle texture")
-MACRO_CONFIG_STR(GameEmoticons, emoticons_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Emoticons texture")
-MACRO_CONFIG_STR(GameCursor, cursor_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Cursor texture")
-MACRO_CONFIG_INT(Texture, texture_page, 4, 0, 0, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Texture page")
+MACRO_CONFIG_STR(GameTexture, bla_game_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gameskin texture")
+MACRO_CONFIG_STR(GameParticles, bla_particle_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Particle texture")
+MACRO_CONFIG_STR(GameEmoticons, bla_emoticons_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Emoticons texture")
+MACRO_CONFIG_STR(GameCursor, bla_cursor_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Cursor texture")
+MACRO_CONFIG_INT(Texture, bla_texture_page, 4, 0, 0, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Texture page")
 
 // chat stuff
-MACRO_CONFIG_INT(ClTextColors, cl_text_colors, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render text colors")
+MACRO_CONFIG_INT(TextColors, bla_text_colors, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render text colors")
+
+//hud
+MACRO_CONFIG_INT(RenderChatIfMenu, bla_chat_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render chat when menu is active")
+MACRO_CONFIG_INT(RenderHudIfMenu, bla_hud_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render hud when menu is active")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
