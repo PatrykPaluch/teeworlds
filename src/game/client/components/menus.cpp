@@ -58,6 +58,7 @@ CMenus::CMenus()
 	SetMenuPage(PAGE_START);
 
 	m_InfoMode = false;
+	m_PopupActive = false;
 
 	m_EscapePressed = false;
 	m_EnterPressed = false;
@@ -1497,6 +1498,8 @@ void CMenus::OnInit()
 	if(g_Config.m_ClShowWelcome)
 		m_Popup = POPUP_LANGUAGE;
 	g_Config.m_ClShowWelcome = 0;
+	if(g_Config.m_ClSkipStartMenu)
+		SetMenuPage(g_Config.m_UiBrowserPage);
 
 	Console()->Chain("add_favorite", ConchainServerbrowserUpdate, this);
 	Console()->Chain("remove_favorite", ConchainServerbrowserUpdate, this);
@@ -1577,19 +1580,18 @@ int CMenus::Render()
 				ServerBrowser()->Refresh(IServerBrowser::TYPE_INTERNET);
 				m_MenuPage = PAGE_INTERNET;
 			}*/
+			// quit button
+			CUIRect Button;
+			float TopOffset = 35.0f;
+			Screen.HSplitTop(TopOffset, &Button, 0);
+			Button.VSplitRight(TopOffset - 3.0f, 0, &Button);
+			static CButtonContainer s_QuitButton;
+			if(DoButton_Menu(&s_QuitButton, "X", 0, &Button, 0, CUI::CORNER_BL))
+				m_Popup = POPUP_QUIT;
 
 			// render current page
 			if(Client()->State() != IClient::STATE_OFFLINE)
 			{
-				// quit button
-				CUIRect Button;
-				float TopOffset = 35.0f;
-				Screen.HSplitTop(TopOffset, &Button, 0);
-				Button.VSplitRight(TopOffset-3.0f, 0, &Button);
-				static CButtonContainer s_QuitButton;
-				if(DoButton_Menu(&s_QuitButton, "X", 0, &Button, 0, CUI::CORNER_BL))
-					m_Popup = POPUP_QUIT;
-				
 				if(m_GamePage == PAGE_GAME)
 					RenderGame(MainView);
 				else if(m_GamePage == PAGE_PLAYERS)
