@@ -555,6 +555,8 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 	int i;
 	IGraphics::CQuadItem Array[10];
 
+	bool ghud = g_Config.m_ClGhud == 1;
+
 	// render ammo
 	if(pCharacter->m_Weapon == WEAPON_NINJA)
 	{
@@ -580,38 +582,98 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 		Graphics()->QuadsBegin();
 		RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[pCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteProj);
-		for(i = 0; i < min(pCharacter->m_AmmoCount, 10); i++)
-			Array[i] = IGraphics::CQuadItem(x+i*12,y+24,10,10);
-		Graphics()->QuadsDrawTL(Array, i);
+        if(ghud)
+        {
+            Array[0] = IGraphics::CQuadItem(x, y+24, 10, 10);
+            i = 1;
+        }
+        else
+        {
+            for(i = 0; i < min(pCharacter->m_AmmoCount, 10); i++)
+            {
+                Array[i] = IGraphics::CQuadItem(x+i*12,y+24,10,10);
+                Graphics()->QuadsDrawTL(Array, i);
+            }
+        }
 	}
 
 	int h = 0;
 
-	// render health
-	RenderTools()->SelectSprite(SPRITE_HEALTH_FULL);
-	for(; h < min(pCharacter->m_Health, 10); h++)
-		Array[h] = IGraphics::CQuadItem(x+h*12,y,10,10);
-	Graphics()->QuadsDrawTL(Array, h);
+	    if(g_Config.m_ClGhud)
+	{
+		char Text[512];
+		CTextCursor Cursor;
+		float w;
+		// render health
+		int nbItems = pCharacter->m_Health;
+		if(nbItems > 3)
+			RenderTools()->SelectSprite(SPRITE_HEALTH_FULL);
+		else RenderTools()->SelectSprite(SPRITE_HEALTH_EMPTY);
+		Array[0] = IGraphics::CQuadItem(x,y,10,10);
+		Graphics()->QuadsDrawTL(Array, 1);
+		// render armor
+		nbItems = pCharacter->m_Armor;
+		if(nbItems > 0)
+			RenderTools()->SelectSprite(SPRITE_ARMOR_FULL);
+		else RenderTools()->SelectSprite(SPRITE_ARMOR_EMPTY);
+		Array[0] = IGraphics::CQuadItem(x,y+12,10,10);
+		Graphics()->QuadsDrawTL(Array, 1);
+		Graphics()->QuadsEnd();
+		str_format(Text, sizeof(Text), "%d", pCharacter->m_Health);
+		w = TextRender()->TextWidth(0, 8, Text, -1);
+		TextRender()->SetCursor(&Cursor, x+16-w/2, y, 8.0f, TEXTFLAG_RENDER);
+		TextRender()->TextEx(&Cursor, Text, -1);
+		str_format(Text, sizeof(Text), "%d", pCharacter->m_Armor);
+		w = TextRender()->TextWidth(0, 8, Text, -1);
+		TextRender()->SetCursor(&Cursor, x+16-w/2, y+12.0f, 8.0f, TEXTFLAG_RENDER);
+		TextRender()->TextEx(&Cursor, Text, -1);
+		if(pCharacter->m_Weapon%NUM_WEAPONS && pCharacter->m_Weapon%NUM_WEAPONS!=5)
+		{
+			str_format(Text, sizeof(Text), "%d", pCharacter->m_AmmoCount);
+			w = TextRender()->TextWidth(0, 8, Text, -1);
+			if(!pCharacter->m_AmmoCount && pCharacter->m_Weapon%NUM_WEAPONS!=4)
+			{
+					if(time_get()/(time_freq()/2)%2 == 0)
+						TextRender()->TextColor(1,1,0.5f,1);
+				TextRender()->SetCursor(&Cursor, x+16-w/2, y+24.0f, 8.0f, TEXTFLAG_RENDER);
+				TextRender()->TextEx(&Cursor, Text, -1);
+				TextRender()->TextColor(1,1,1,1);
+			}
+			else
+			{
+				TextRender()->SetCursor(&Cursor, x+16-w/2, y+24.0f, 8.0f, TEXTFLAG_RENDER);
+				TextRender()->TextEx(&Cursor, Text, -1);
+			}
+		}
+	}
+    else
+    {
+        // render health
+        RenderTools()->SelectSprite(SPRITE_HEALTH_FULL);
+        for(; h < min(pCharacter->m_Health, 10); h++)
+            Array[h] = IGraphics::CQuadItem(x+h*12,y,10,10);
+        Graphics()->QuadsDrawTL(Array, h);
 
-	i = 0;
-	RenderTools()->SelectSprite(SPRITE_HEALTH_EMPTY);
-	for(; h < 10; h++)
-		Array[i++] = IGraphics::CQuadItem(x+h*12,y,10,10);
-	Graphics()->QuadsDrawTL(Array, i);
+        i = 0;
+        RenderTools()->SelectSprite(SPRITE_HEALTH_EMPTY);
+        for(; h < 10; h++)
+            Array[i++] = IGraphics::CQuadItem(x+h*12,y,10,10);
+        Graphics()->QuadsDrawTL(Array, i);
 
-	// render armor meter
-	h = 0;
-	RenderTools()->SelectSprite(SPRITE_ARMOR_FULL);
-	for(; h < min(pCharacter->m_Armor, 10); h++)
-		Array[h] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
-	Graphics()->QuadsDrawTL(Array, h);
+        // render armor meter
+        h = 0;
+        RenderTools()->SelectSprite(SPRITE_ARMOR_FULL);
+        for(; h < min(pCharacter->m_Armor, 10); h++)
+            Array[h] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
+        Graphics()->QuadsDrawTL(Array, h);
 
-	i = 0;
-	RenderTools()->SelectSprite(SPRITE_ARMOR_EMPTY);
-	for(; h < 10; h++)
-		Array[i++] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
-	Graphics()->QuadsDrawTL(Array, i);
-	Graphics()->QuadsEnd();
+        i = 0;
+        RenderTools()->SelectSprite(SPRITE_ARMOR_EMPTY);
+        for(; h < 10; h++)
+            Array[i++] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
+        Graphics()->QuadsDrawTL(Array, i);
+        Graphics()->QuadsEnd();
+    }
 }
 
 void CHud::RenderSpectatorHud()

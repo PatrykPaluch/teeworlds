@@ -94,7 +94,7 @@ void CMenus::RenderGame(CUIRect MainView)
 				ButtonBar.VSplitLeft(10.0f, 0, &ButtonBar);
 				ButtonBar.VSplitLeft(120.0f, &Button, &ButtonBar);
 				static CButtonContainer s_SpectateButton;
-				if(DoButton_MenuTabTop(&s_SpectateButton, Localize("Join red"), 0, &Button))
+				if(DoButton_MenuTabTop(&s_SpectateButton, Localize("^rRed"), 0, &Button))
 				{
 					m_pClient->SendSwitchTeam(TEAM_RED);
 					SetActive(false);
@@ -104,9 +104,9 @@ void CMenus::RenderGame(CUIRect MainView)
 				absolute((m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED]+TeamMod)-(m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE]+1)) < NUM_TEAMS)
 			{
 			    ButtonBar.VSplitLeft(10.0f, 0, &ButtonBar);
-				ButtonBar.VSplitLeft(120.0f, &Button, &ButtonBar);
+				ButtonBar.VSplitLeft(100.0f, &Button, &ButtonBar);
 				static CButtonContainer s_SpectateButton;
-				if(DoButton_MenuTabTop(&s_SpectateButton, Localize("Join blue"), 0, &Button))
+				if(DoButton_MenuTabTop(&s_SpectateButton, Localize("^bBlue"), 0, &Button))
 				{
 					m_pClient->SendSwitchTeam(TEAM_BLUE);
 					SetActive(false);
@@ -115,22 +115,22 @@ void CMenus::RenderGame(CUIRect MainView)
 		}
 		else
 		{
-		if(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != 0)
-			{
-			    ButtonBar.VSplitLeft(10.0f, 0, &ButtonBar);
-				ButtonBar.VSplitLeft(120.0f, &Button, &ButtonBar);
-				static CButtonContainer s_SpectateButton;
-				if(DoButton_MenuTabTop(&s_SpectateButton, Localize("Join game"), 0, &Button))
-				{
-					m_pClient->SendSwitchTeam(0);
-					SetActive(false);
-				}
-			}
-		}
+            if(m_pClient->m_aClients[m_pClient->m_LocalClientID].m_Team != 0)
+            {
+                ButtonBar.VSplitLeft(10.0f, 0, &ButtonBar);
+                ButtonBar.VSplitLeft(100.0f, &Button, &ButtonBar);
+                static CButtonContainer s_SpectateButton;
+                if(DoButton_MenuTabTop(&s_SpectateButton, Localize("Join"), 0, &Button))
+                {
+                    m_pClient->SendSwitchTeam(0);
+                    SetActive(false);
+                }
+            }
+        }
 	}
 
 	// Record button
-	ButtonBar.VSplitRight(100.0f, &ButtonBar, 0);
+	ButtonBar.VSplitRight(50.0f, &ButtonBar, 0);
 	ButtonBar.VSplitRight(120.0f, &ButtonBar, &Button);
     static CButtonContainer s_TestButton;
 	if(DoButton_MenuTabTop(&s_TestButton, Localize("LAN Test"), 0, &Button))
@@ -139,7 +139,7 @@ void CMenus::RenderGame(CUIRect MainView)
 		Client()->Connect("127.0.0.1:8303");
 		Client()->SendInitialRconPassword("default");
 	}
-	ButtonBar.VSplitRight(100.0f, &ButtonBar, 0);
+	ButtonBar.VSplitRight(50.0f, &ButtonBar, 0);
 	ButtonBar.VSplitRight(120.0f, &ButtonBar, &Button);
 
 	static CButtonContainer s_DemoButton;

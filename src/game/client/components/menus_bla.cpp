@@ -69,6 +69,12 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 	if(DoButton_CheckBox(&s_HealthBar, Localize("Show health & ammo bar over tee "), g_Config.m_HealthBar, &Button))
 		g_Config.m_HealthBar ^= 1;
 
+    Functions.HSplitTop(Spacing, 0, &Functions);
+	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
+	static CButtonContainer s_GamerHUD;
+	if(DoButton_CheckBox(&s_GamerHUD, Localize("Gamer HUD"), g_Config.m_ClGhud, &Button))
+		g_Config.m_ClGhud ^= 1;
+
 	Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
 

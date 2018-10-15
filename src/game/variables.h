@@ -144,6 +144,7 @@ MACRO_CONFIG_INT(ChatFeatures, bla_chat_features, 1, 0, 1, CFGFLAG_CLIENT|CFGFLA
 //hud
 MACRO_CONFIG_INT(RenderChatIfMenu, bla_chat_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render chat when menu is active")
 MACRO_CONFIG_INT(RenderHudIfMenu, bla_hud_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render hud when menu is active")
+MACRO_CONFIG_INT(ClGhud, bla_ghud, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gamer HUD")
 
 //other
 MACRO_CONFIG_INT(AdminIcon, bla_admin_icon, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show icon in scoreboard when player is admin")
