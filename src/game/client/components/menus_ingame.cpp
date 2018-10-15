@@ -104,7 +104,7 @@ void CMenus::RenderGame(CUIRect MainView)
 				absolute((m_pClient->m_GameInfo.m_aTeamSize[TEAM_RED]+TeamMod)-(m_pClient->m_GameInfo.m_aTeamSize[TEAM_BLUE]+1)) < NUM_TEAMS)
 			{
 			    ButtonBar.VSplitLeft(10.0f, 0, &ButtonBar);
-				ButtonBar.VSplitLeft(100.0f, &Button, &ButtonBar);
+				ButtonBar.VSplitLeft(120.0f, &Button, &ButtonBar);
 				static CButtonContainer s_SpectateButton;
 				if(DoButton_MenuTabTop(&s_SpectateButton, Localize("^bBlue"), 0, &Button))
 				{
