@@ -57,6 +57,11 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 		g_Config.m_Bdadash ^= 1;
 	Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
+    static CButtonContainer s_Admin;
+	if(DoButton_CheckBox(&s_Admin, Localize("Show admin icon in scoreboard"), g_Config.m_AdminIcon, &Button))
+		g_Config.m_AdminIcon ^= 1;
+	Functions.HSplitTop(Spacing, 0, &Functions);
+	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
 
 	// render effect menu
 	Effect.HSplitTop(ButtonHeight, &Label, &Effect);

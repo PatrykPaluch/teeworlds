@@ -140,6 +140,9 @@ MACRO_CONFIG_INT(TextColors, bla_text_colors, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SA
 MACRO_CONFIG_INT(RenderChatIfMenu, bla_chat_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render chat when menu is active")
 MACRO_CONFIG_INT(RenderHudIfMenu, bla_hud_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render hud when menu is active")
 
+//other
+MACRO_CONFIG_INT(AdminIcon, bla_admin_icon, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show icon in scoreboard when player is admin")
+
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
 	MACRO_CONFIG_INT(DbgDummies, dbg_dummies, 0, 0, 15, CFGFLAG_SERVER, "")
