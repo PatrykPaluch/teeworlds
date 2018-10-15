@@ -518,6 +518,7 @@ private:
 	void RenderServerControlKick(CUIRect MainView, bool FilterSpectators);
 	void RenderServerControlServer(CUIRect MainView);
     void RenderInGameServerBrowser(CUIRect MainView);
+    void TestMap();
 
 	// found in menus_browser.cpp
 	int m_ScrollOffset;

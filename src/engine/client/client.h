@@ -84,7 +84,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	int64 m_LocalStartTime;
 
 	IGraphics::CTextureHandle m_DebugFont;
-	
+
 	int64 m_LastRenderTime;
 	float m_RenderFrameTimeLow;
 	float m_RenderFrameTimeHigh;
@@ -103,6 +103,8 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	int m_CurrentRecvTick;
 	int m_RconAuthed;
 	int m_UseTempRconCommands;
+
+	char m_aServerRconPassword[128];
 
 	// version-checking
 	char m_aVersionStr[10];
@@ -295,6 +297,10 @@ public:
 	static void ConchainWindowBordered(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainWindowScreen(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainWindowVSync(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+
+    virtual void SendInitialRconPassword(const char *m_aRconPassword) { str_copy(m_aServerRconPassword, m_aRconPassword, sizeof(m_aServerRconPassword)); }
+    virtual const char* GetCurrentMap();
+    virtual int GetCurrentMapCrc();
 
 	void RegisterCommands();
 
