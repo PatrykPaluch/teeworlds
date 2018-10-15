@@ -25,6 +25,7 @@ class CHud : public CComponent
 	void RenderScoreHud();
 	void RenderSpectatorHud();
 	void RenderWarmupTimer();
+	void RenderTimeDown();
 public:
 	CHud();
 

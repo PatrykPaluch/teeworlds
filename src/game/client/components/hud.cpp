@@ -19,6 +19,8 @@
 #include "voting.h"
 #include "binds.h"
 
+#include <time.h>
+
 CHud::CHud()
 {
 	// won't work if zero
@@ -644,6 +646,22 @@ void CHud::RenderSpectatorHud()
 	TextRender()->Text(0, m_Width-174.0f, m_Height-13.0f, 8.0f, aBuf, -1);
 }
 
+void CHud::RenderTimeDown()
+{
+	if(!g_Config.m_RenderTime)
+        return;
+
+	char aTime[11];
+	char aDate[64];
+	char aComp[128];
+    time_t rawtime = time(NULL);
+    struct tm *timeinfo = localtime(&rawtime);
+    strftime(aTime,80,"%H:%M:%S",timeinfo);
+	strftime(aDate,80,"%d.%m.%Y",timeinfo);
+	str_format(aComp, sizeof(aComp), "%s - %s", aTime, aDate);
+	TextRender()->Text(0, 1, m_Height-8.5f, 6, aComp, -1);
+}
+
 void CHud::OnRender()
 {
 	if(!m_pClient->m_Snap.m_pGameData)
@@ -679,6 +697,7 @@ void CHud::OnRender()
 		RenderScoreHud();
 		RenderWarmupTimer();
 		RenderFps();
+        RenderTimeDown();
 		if(Client()->State() != IClient::STATE_DEMOPLAYBACK)
 			RenderConnectionWarning();
 		RenderTeambalanceWarning();

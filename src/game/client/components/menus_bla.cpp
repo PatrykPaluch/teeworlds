@@ -118,6 +118,11 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 		g_Config.m_DisableQuads ^= 1;
 	Extras.HSplitTop(Spacing, 0, &Extras);
 	Extras.HSplitTop(ButtonHeight, &Button, &Extras);
+	static CButtonContainer s_RenderTime;
+	if(DoButton_CheckBox(&s_RenderTime, Localize("Show local time ingame"), g_Config.m_RenderTime, &Button))
+		g_Config.m_RenderTime ^= 1;
+	Extras.HSplitTop(Spacing, 0, &Extras);
+	Extras.HSplitTop(ButtonHeight, &Button, &Extras);
 }
 
 void CMenus::RenderBlaSettingsHud(CUIRect MainView)

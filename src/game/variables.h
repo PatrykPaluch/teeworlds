@@ -146,7 +146,7 @@ MACRO_CONFIG_INT(RenderHudIfMenu, bla_hud_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGF
 
 //other
 MACRO_CONFIG_INT(AdminIcon, bla_admin_icon, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show icon in scoreboard when player is admin")
-
+MACRO_CONFIG_INT(RenderTime, bla_show_time, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show local time ingame")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
