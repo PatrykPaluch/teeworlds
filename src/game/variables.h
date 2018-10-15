@@ -118,10 +118,20 @@ MACRO_CONFIG_INT(SvVoteKick, sv_vote_kick, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_SERVER,
 MACRO_CONFIG_INT(SvVoteKickMin, sv_vote_kick_min, 0, 0, MAX_CLIENTS, CFGFLAG_SAVE|CFGFLAG_SERVER, "Minimum number of players required to start a kick vote")
 MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SAVE|CFGFLAG_SERVER, "The time to ban a player if kicked by vote. 0 makes it just use kick")
 
+
 //Bla stuff
+
+//functions
 MACRO_CONFIG_INT(Bdadash, bla_bdadash, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable pew pew?")
+//effects
 MACRO_CONFIG_INT(Blood, bla_blood, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod")
 MACRO_CONFIG_INT(BloodDamage, bla_blood_damage, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod damage")
+//texture changer
+MACRO_CONFIG_STR(GameTexture, game_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gameskin texture")
+MACRO_CONFIG_STR(GameParticles, particle_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Particle texture")
+MACRO_CONFIG_STR(GameEmoticons, emoticons_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Emoticons texture")
+MACRO_CONFIG_STR(GameCursor, cursor_texture, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Cursor texture")
+MACRO_CONFIG_INT(Texture, texture_page, 4, 0, 0, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Texture page")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
