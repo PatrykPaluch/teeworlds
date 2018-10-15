@@ -148,6 +148,8 @@ private:
 		PAGE_START,
 		PAGE_BLA,
 
+		PAGE_INGAME_BROWSER=0,
+
 		PAGE_BROWSER_BROWSER=0,
 		PAGE_BROWSER_FRIENDS,
 		NUM_PAGE_BROWSER,
@@ -515,6 +517,7 @@ private:
 	void RenderServerControl(CUIRect MainView);
 	void RenderServerControlKick(CUIRect MainView, bool FilterSpectators);
 	void RenderServerControlServer(CUIRect MainView);
+    void RenderInGameServerBrowser(CUIRect MainView);
 
 	// found in menus_browser.cpp
 	int m_ScrollOffset;
