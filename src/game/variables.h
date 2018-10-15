@@ -123,6 +123,8 @@ MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SA
 
 //functions
 MACRO_CONFIG_INT(Bdadash, bla_bdadash, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable pew pew?")
+MACRO_CONFIG_INT(HealthBar, bla_health_bar, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Health & ammobar over tee")
+
 //effects
 MACRO_CONFIG_INT(Blood, bla_blood, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod")
 MACRO_CONFIG_INT(BloodDamage, bla_blood_damage, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Simple bloodmod damage")
@@ -135,6 +137,7 @@ MACRO_CONFIG_INT(Texture, bla_texture_page, 4, 0, 0, CFGFLAG_CLIENT|CFGFLAG_SAVE
 
 // chat stuff
 MACRO_CONFIG_INT(TextColors, bla_text_colors, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render text colors")
+MACRO_CONFIG_INT(ChatFeatures, bla_chat_features, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Eye candy chat features")
 
 //hud
 MACRO_CONFIG_INT(RenderChatIfMenu, bla_chat_if_menuu, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Render chat when menu is active")

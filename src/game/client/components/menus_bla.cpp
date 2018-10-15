@@ -62,6 +62,11 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 		g_Config.m_AdminIcon ^= 1;
 	Functions.HSplitTop(Spacing, 0, &Functions);
 	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
+	static CButtonContainer s_HealthBar;
+	if(DoButton_CheckBox(&s_HealthBar, Localize("Show health & ammo bar over tee "), g_Config.m_HealthBar, &Button))
+		g_Config.m_HealthBar ^= 1;
+	Functions.HSplitTop(Spacing, 0, &Functions);
+	Functions.HSplitTop(ButtonHeight, &Button, &Functions);
 
 	// render effect menu
 	Effect.HSplitTop(ButtonHeight, &Label, &Effect);
@@ -84,7 +89,30 @@ void CMenus::RenderBlaSettingsGeneral(CUIRect MainView)
 }
  void CMenus::RenderBlaSettingsExtras(CUIRect MainView)
 {
+    CUIRect Label, Button, Extras, BottomView;
+	// cut view
+	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
+	BottomView.HSplitTop(20.f, 0, &BottomView);
+	// render game menu backgrounds
+	int NumOptions = 17.0f;
+	float ButtonHeight = 20.0f;
+	float Spacing = 2.0f;
+	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
+	MainView.HSplitTop(20.0f, 0, &MainView);
+	MainView.HSplitTop(BackgroundHeight, &Extras, &MainView);
+	RenderTools()->DrawUIRect(&Extras, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
+	// render extra menu
+	Extras.HSplitTop(ButtonHeight, &Label, &Extras);
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, Localize("Extras"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+    Extras.HSplitTop(Spacing, 0, &Extras);
+	Extras.HSplitTop(ButtonHeight, &Button, &Extras);
+	static CButtonContainer s_ChatFeatures;
+	if(DoButton_CheckBox(&s_ChatFeatures, Localize("Eye candy chat"), g_Config.m_ChatFeatures, &Button))
+		g_Config.m_ChatFeatures ^= 1;
+	Extras.HSplitTop(Spacing, 0, &Extras);
+	Extras.HSplitTop(ButtonHeight, &Button, &Extras);
 }
 
 void CMenus::RenderBlaSettingsHud(CUIRect MainView)
