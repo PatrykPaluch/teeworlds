@@ -106,7 +106,8 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 		UI()->DoLabelScaled(&Version, aBuf, 14.0f, CUI::ALIGN_CENTER);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	}
-	UI()->DoLabelScaled(&Version, GAME_VERSION, 14.0f, CUI::ALIGN_RIGHT);
+	str_format(aBuf, sizeof(aBuf), Localize("Bla-Client v%s for %s"), BLA_VERSION, GAME_VERSION);
+	UI()->DoLabelScaled(&Version, aBuf, 14.0f, CUI::ALIGN_RIGHT);
 
 	if(NewPage != -1)
 		SetMenuPage(NewPage);

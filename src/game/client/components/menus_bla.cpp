@@ -18,6 +18,7 @@
 #include <game/client/render.h>
 #include <game/client/gameclient.h>
 #include <game/client/animstate.h>
+#include <game/version.h>
 
 #include "binds.h"
 #include "countryflags.h"
@@ -215,6 +216,24 @@ void CMenus::RenderBlaSettingsHud(CUIRect MainView)
 }
 void CMenus::RenderBlaSettingsDummy(CUIRect MainView)
 {
+    CUIRect Label, Text, Button, Dummy, BottomView;
+	// cut view
+	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
+	BottomView.HSplitTop(20.f, 0, &BottomView);
+	// render game menu backgrounds
+	int NumOptions = 17.0f;
+	float ButtonHeight = 20.0f;
+	float Spacing = 2.0f;
+	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
+	MainView.HSplitTop(20.0f, 0, &MainView);
+	MainView.HSplitTop(BackgroundHeight, &Dummy, &MainView);
+	RenderTools()->DrawUIRect(&Dummy, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	MainView.HSplitTop(10.0f, 0, &MainView);
+
+	// render general menu
+	Dummy.HSplitTop(ButtonHeight, &Label, &Dummy);
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, Localize("Placeholder"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 }
 void CMenus::RenderBlaSettingsTexture(CUIRect MainView)
 {
@@ -475,7 +494,35 @@ void CMenus::RenderBlaSettingsTexture(CUIRect MainView)
 }
 void CMenus::RenderBlaSettingsInfo(CUIRect MainView)
 {
+    CUIRect Label, Info, BottomView;
+	// cut view
+	MainView.HSplitBottom(80.0f, &MainView, &BottomView);
+	BottomView.HSplitTop(20.f, 0, &BottomView);
+	// render game menu backgrounds
+	int NumOptions = 17.0f;
+	float ButtonHeight = 20.0f;
+	float Spacing = 2.0f;
+	float BackgroundHeight = (float)(NumOptions+1)*ButtonHeight+(float)NumOptions*Spacing;
+	MainView.HSplitTop(20.0f, 0, &MainView);
+	MainView.HSplitTop(BackgroundHeight, &Info, &MainView);
+	RenderTools()->DrawUIRect(&Info, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	MainView.HSplitTop(10.0f, 0, &MainView);
 
+	// render general menu
+	Info.HSplitTop(ButtonHeight, &Label, &Info);
+	Label.y += 2.0f;
+	UI()->DoLabel(&Label, Localize("Info"), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+    char aBuf[32];
+	str_format(aBuf, sizeof(aBuf), "\n\n%s %s %s", Localize("Compiled"), __DATE__, __TIME__, BLA_VERSION);
+	UI()->DoLabel(&Label, aBuf, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+    char aClient[64];
+    Label.y += 20.0f;
+	str_format(aClient, sizeof(aClient), "\n\n%s%s for Teeworlds v%s", Localize("Bla-Client v"), BLA_VERSION, GAME_VERSION);
+	UI()->DoLabel(&Label, aClient, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
+    Label.y += 60.0f;
+     char aText[64];
+	str_format(aText, sizeof(aClient), "\n\n%s", Localize("Thanks to everyone who made this client and his features possible"));
+	UI()->DoLabel(&Label, aText, ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 }
 void CMenus::RenderBla(CUIRect MainView)
 {

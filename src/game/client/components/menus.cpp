@@ -1367,7 +1367,7 @@ void CMenus::RenderLoading()
     UI()->DoLabel(&Rect, pVersion, 14.0f, CUI::ALIGN_RIGHT); // Align == 1 -> text align from the right
     TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-    m_TextureLogo = Graphics()->LoadTexture("logo.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+ /*   m_TextureLogo = Graphics()->LoadTexture("logo.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
     Graphics()->TextureSet(m_TextureLogo);
     Graphics()->QuadsBegin();
     Graphics()->SetColor(1,1,1,0.3f);
@@ -1378,6 +1378,7 @@ void CMenus::RenderLoading()
     QuadItem = IGraphics::CQuadItem(Screen.x, y-200, 285.0 * Percent, h);
     Graphics()->QuadsDrawTL(&QuadItem, 1);
     Graphics()->QuadsEnd();
+    */
 
 	Graphics()->Swap();
 }
