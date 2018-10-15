@@ -465,7 +465,7 @@ private:
 		int m_WidthValue;
 		int m_HeightValue;
 	};
-	
+
 	CVideoFormat m_aVideoFormats[MAX_RESOLUTIONS];
 	sorted_array<CVideoMode> m_lFilteredVideoModes;
 	int m_NumVideoFormats;
@@ -549,6 +549,7 @@ private:
 	static int PopupFilter(CMenus *pMenus, CUIRect View);
 
 	IGraphics::CTextureHandle m_TextureBlob;
+	IGraphics::CTextureHandle m_TextureLogo;
 
 	void ToggleMusic();
 
