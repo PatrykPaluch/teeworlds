@@ -1198,6 +1198,14 @@ void CMenus::RenderMenubar(CUIRect r)
 				g_Config.m_UiBrowserPage = PAGE_LAN;
 			}
 
+			Left.VSplitLeft(135, 0, &Left); // little space
+			Left.VSplitLeft(ButtonWidth, &Button, &Left);
+			static CButtonContainer s_MenuButton;
+			if(DoButton_MenuTabTop(&s_MenuButton, Localize("Menu"), m_ActivePage==PAGE_START, &Button))
+			{
+				NewPage = PAGE_START;
+			}
+
 			char aBuf[32];
 			if(m_BorwserPage == PAGE_BROWSER_BROWSER)
 				str_copy(aBuf, Localize("Friends"), sizeof(aBuf));
@@ -2370,10 +2378,9 @@ bool CMenus::OnInput(IInput::CEvent e)
 void CMenus::OnConsoleInit()
 {
 	// add filters
-	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, Localize("Teeworlds"), ServerBrowser(), IServerBrowser::FILTER_COMPAT_VERSION|IServerBrowser::FILTER_PURE|IServerBrowser::FILTER_PURE_MAP|IServerBrowser::FILTER_PING, 999, -1, "", ""));
-	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_FAVORITES, Localize("Favorites"), ServerBrowser(), IServerBrowser::FILTER_FAVORITE|IServerBrowser::FILTER_PING, 999, -1, "", ""));
+//	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, Localize("Teeworlds"), ServerBrowser(), IServerBrowser::FILTER_COMPAT_VERSION|IServerBrowser::FILTER_PURE|IServerBrowser::FILTER_PURE_MAP|IServerBrowser::FILTER_PING, 999, -1, "", ""));
 	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_ALL, Localize("All"), ServerBrowser(), IServerBrowser::FILTER_PING, 999, -1, "", ""));
-
+	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_FAVORITES, Localize("Favorites"), ServerBrowser(), IServerBrowser::FILTER_FAVORITE|IServerBrowser::FILTER_PING, 999, -1, "", ""));
 	m_lFilters[0].Switch();
 }
 

@@ -24,3 +24,4 @@ scripts/work/
 *.dll
 other/freetype/bin/freetype-config
 *.html
+*.exe
