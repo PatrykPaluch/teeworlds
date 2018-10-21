@@ -1617,13 +1617,13 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 		static int s_InfoTab = 0;
 		if (DoButton_MenuTab(&s_InfoTab, Localize("Info"), ToolboxPage==1, &TabButton1, CUI::CORNER_L))
         {
-            ToolboxPage=1;
+            ToolboxPage = 1;
         }
 
 		static int s_EditTab = 0;
 		if (DoButton_MenuTab(&s_EditTab, Localize("Edit"), ToolboxPage==2, &TabButton2, CUI::CORNER_L))
         {
-            ToolboxPage=2;
+            ToolboxPage = 2;
         }
 
 		ms_ColorTabbarActive = Active;
@@ -1632,13 +1632,16 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 	}
 		// tool box
 	{
-		const CServerInfo *pSelectedServer = ServerBrowser()->SortedGet(m_SelectedServer.m_Filter, m_SelectedServer.m_Index);
-
 		RenderTools()->DrawUIRect(&ToolBox, vec4(0.0f, 0.0f, 0.0f, 0.15f), CUI::CORNER_T, 4.0f);
 		if(ToolboxPage == 0)
 			RenderServerbrowserFilters(ToolBox);
 		else if(ToolboxPage == 1)
-			RenderServerbrowserServerDetail(ToolBox, pSelectedServer);
+		{
+            if(const CServerInfo *pSelectedServer = ServerBrowser()->SortedGet(m_SelectedServer.m_Filter, m_SelectedServer.m_Index))
+            {
+                RenderServerbrowserServerDetail(ToolBox, pSelectedServer);
+            }
+		}
 		else if(ToolboxPage == 2)
 			RenderServerbrowserEdit(ToolBox);
 	}
