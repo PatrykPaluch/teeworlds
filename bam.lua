@@ -8,7 +8,7 @@ Import("other/freetype/freetype.lua")
 config = NewConfig()
 config:Add(OptCCompiler("compiler"))
 config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-protector -fstack-protector-all"))
-config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.6 -isysroot /Developer/SDKs/MacOSX10.6.sdk"))
+config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.7 -isysroot /Developer/SDKs/MacOSX10.7.sdk"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
@@ -120,11 +120,17 @@ function GenerateMacOSXSettings(settings, conf, arch, compiler)
 		os.exit(1)
 	end
 
-	settings.cc.flags:Add("-mmacosx-version-min=10.6")
-	settings.link.flags:Add("-mmacosx-version-min=10.6")
+	-- c++ stdlib needed 
+	settings.cc.flags:Add("--stdlib=libc++")
+	settings.link.flags:Add("--stdlib=libc++")
+	-- this also needs the macOS min SDK version to be at least 10.7
+
+	settings.cc.flags:Add("-mmacosx-version-min=10.7")
+	settings.link.flags:Add("-mmacosx-version-min=10.7")
+
 	if config.minmacosxsdk.value == 1 then
-		settings.cc.flags:Add("-isysroot /Developer/SDKs/MacOSX10.6.sdk")
-		settings.link.flags:Add("-isysroot /Developer/SDKs/MacOSX10.6.sdk")
+		settings.cc.flags:Add("-isysroot /Developer/SDKs/MacOSX10.7.sdk")
+		settings.link.flags:Add("-isysroot /Developer/SDKs/MacOSX10.7.sdk")
 	end
 
 	settings.link.frameworks:Add("Carbon")
@@ -209,7 +215,7 @@ end
 function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 	if compiler == "cl" then
 		if (target_arch == "x86" and arch ~= "ia32") or
-		   (target_arch == "x86_64" and arch ~= "x64" and arch ~= "x86_64") then
+		   (target_arch == "x86_64" and arch ~= "ia64" and arch ~= "amd64") then
 			print("Cross compiling is unsupported on Windows.")
 			os.exit(1)
 		end
@@ -451,7 +457,7 @@ if ScriptArgs['arch'] then
 else
 	if arch == "ia32" then
 		archs = {"x86"}
-	elseif arch == "x64" or arch == "amd64" then
+	elseif arch == "ia64" or arch == "amd64" then
 		archs = {"x86_64"}
 	else
 		archs = {arch}
