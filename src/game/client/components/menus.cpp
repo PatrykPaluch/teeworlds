@@ -36,6 +36,9 @@ float CMenus::ms_ButtonHeight = 25.0f;
 float CMenus::ms_ListheaderHeight = 17.0f;
 float CMenus::ms_FontmodHeight = 0.8f;
 
+const float CMenus::ms_Alpha = 0.5f; // first layer alpha
+const float CMenus::ms_LightAlpha = CMenus::ms_Alpha/2.f; // second layer alpha
+const float CMenus::ms_ButtonAlpha = CMenus::ms_Alpha/1.5f; // buttons
 
 CMenus::CMenus()
 {
@@ -134,7 +137,7 @@ int CMenus::DoButton_Menu(CButtonContainer *pBC, const char *pText, int Checked,
 	float FadeVal = Fade/Seconds;
 	CUIRect Text = *pRect;
 
-	vec4 Color = mix(vec4(0.0f, 0.0f, 0.0f, 0.25f), ColorHot, FadeVal);
+	vec4 Color = mix(vec4(0.0f, 0.0f, 0.0f, ms_ButtonAlpha), ColorHot, FadeVal);
 	RenderTools()->DrawUIRect(pRect, Color, Corners, r);
 
 	if(pImageName)
@@ -229,7 +232,7 @@ int CMenus::DoButton_MenuTabTop(CButtonContainer *pBC, const char *pText, int Ch
 	pRect->HMargin(pRect->h>=20.0f?2.0f:1.0f, &Temp);
 	Temp.HMargin((Temp.h*FontFactor)/2.0f, &Temp);
 	TextRender()->TextColor(1.0f-FadeVal, 1.0f-FadeVal, 1.0f-FadeVal, 1.0f);
-	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, 0.25f);
+	TextRender()->TextOutlineColor(0.0f+FadeVal, 0.0f+FadeVal, 0.0f+FadeVal, ms_Alpha);
 	UI()->DoLabel(&Temp, pText, Temp.h*ms_FontmodHeight, CUI::ALIGN_CENTER);
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 	TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
@@ -285,7 +288,7 @@ int CMenus::DoButton_GridHeaderIcon(CButtonContainer *pBC, int ImageID, int Spri
 int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const char *pBoxText, const CUIRect *pRect, bool Checked)
 //void CMenus::ui_draw_checkbox_common(const void *id, const char *text, const char *boxtext, const CUIRect *r, const void *extra)
 {
-	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, ms_LightAlpha), CUI::CORNER_ALL, 5.0f);
 
 	CUIRect c = *pRect;
 	CUIRect t = *pRect;
@@ -555,7 +558,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 
 void CMenus::DoEditBoxOption(void *pID, char *pOption, int OptionLength, const CUIRect *pRect, const char *pStr,  float VSplitVal, float *pOffset, bool Hidden)
 {
-	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, ms_LightAlpha), CUI::CORNER_ALL, 5.0f);
 
 	CUIRect Label, EditBox;
 	pRect->VSplitLeft(VSplitVal, &Label, &EditBox);
@@ -570,7 +573,7 @@ void CMenus::DoEditBoxOption(void *pID, char *pOption, int OptionLength, const C
 
 void CMenus::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, const char *pStr, float VSplitVal, int Min, int Max, bool infinite)
 {
-	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	RenderTools()->DrawUIRect(pRect, vec4(0.0f, 0.0f, 0.0f, ms_LightAlpha), CUI::CORNER_ALL, 5.0f);
 
 	CUIRect Label, ScrollBar;
 	pRect->VSplitLeft(VSplitVal, &Label, &ScrollBar);
@@ -805,7 +808,7 @@ void CMenus::UiDoListboxHeader(CListBoxState* pState, const CUIRect *pRect, cons
 
 	// background
 	View.HSplitTop(ms_ListheaderHeight+Spacing, &Header, 0);
-	RenderTools()->DrawUIRect(&Header, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_T, 5.0f);
+	RenderTools()->DrawUIRect(&Header, vec4(0.0f, 0.0f, 0.0f, ms_Alpha), CUI::CORNER_T, 5.0f);
 
 	// draw header
 	View.HSplitTop(ms_ListheaderHeight, &Header, &View);
@@ -831,7 +834,7 @@ void CMenus::UiDoListboxStart(CListBoxState* pState, const void *pID, float RowH
 
 	// background
 	if(Background)
-		RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_B, 5.0f);
+		RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, ms_Alpha), CUI::CORNER_B, 5.0f);
 
 	// draw footers
 	if(pBottomText)
@@ -846,10 +849,10 @@ void CMenus::UiDoListboxStart(CListBoxState* pState, const void *pID, float RowH
 	View.VSplitRight(20.0f, &View, &Scroll);
 
 	// scroll background
-	RenderTools()->DrawUIRect(&Scroll, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	RenderTools()->DrawUIRect(&Scroll, vec4(0.0f, 0.0f, 0.0f, ms_LightAlpha), CUI::CORNER_ALL, 5.0f);
 
 	// list background
-	RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+	RenderTools()->DrawUIRect(&View, vec4(0.0f, 0.0f, 0.0f, ms_LightAlpha), CUI::CORNER_ALL, 5.0f);
 
 	// setup the variables
 	pState->m_ListBoxOriginalView = View;

@@ -604,6 +604,9 @@ public:
 	void UseMouseButtons(bool Use) { m_UseMouseButtons = Use; }
 
 	static CMenusKeyBinder m_Binder;
+	static const float ms_Alpha;
+	static const float ms_LightAlpha;
+	static const float ms_ButtonAlpha;
 
 	CMenus();
 
