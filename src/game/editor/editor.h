@@ -904,6 +904,7 @@ struct CEditorMap
 		int m_Width;
 		int m_Height;
 		int m_TileStartID;
+		vec4 m_Color;
 	};
 
 	array<CLayerTile> m_aLayerTile;
