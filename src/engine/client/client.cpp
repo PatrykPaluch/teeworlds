@@ -2007,6 +2007,9 @@ void CClient::Run()
 
 			Update();
 
+			if(m_EditorActive)
+				m_pEditor->Update();
+
 			const bool SkipFrame = LimitFps();
 
 			if(!SkipFrame && (!g_Config.m_GfxAsyncRender || m_pGraphics->IsIdle()))
@@ -2032,7 +2035,7 @@ void CClient::Run()
 						Render();
 					else
 					{
-						m_pEditor->UpdateAndRender();
+						m_pEditor->Render();
 						DebugRender();
 					}
 					m_pGraphics->Swap();
