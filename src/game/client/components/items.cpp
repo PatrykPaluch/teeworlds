@@ -108,7 +108,7 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 		SPRITE_PICKUP_ARMOR,
 		SPRITE_PICKUP_GRENADE,
 		SPRITE_PICKUP_SHOTGUN,
-		SPRITE_PICKUP_LASER,
+		SPRITE_FLAG_STAND,
 		SPRITE_PICKUP_NINJA
 		};
 	RenderTools()->SelectSprite(c[pCurrent->m_Type]);
@@ -123,6 +123,8 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 		break;
 	case PICKUP_LASER:
 		Size = g_pData->m_Weapons.m_aId[WEAPON_LASER].m_VisualSize;
+		Size *= 1.0f;
+		Pos.x -= 64.0f;
 		break;
 	case PICKUP_NINJA:
 		m_pClient->m_pEffects->PowerupShine(Pos, vec2(96,18));
@@ -147,8 +149,12 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 		if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 			s_Time += Client()->LocalTime()-s_LastLocalTime;
  	}
-	Pos.x += cosf(s_Time*2.0f+Offset)*2.5f;
-	Pos.y += sinf(s_Time*2.0f+Offset)*2.5f;
+ 	
+ 	if(pCurrent->m_Type != PICKUP_LASER)
+ 	{
+		Pos.x += cosf(s_Time*2.0f+Offset)*2.5f;
+		Pos.y += sinf(s_Time*2.0f+Offset)*2.5f;
+	}
 	s_LastLocalTime = Client()->LocalTime();
 	RenderTools()->DrawSprite(Pos.x, Pos.y, Size);
 	Graphics()->QuadsEnd();

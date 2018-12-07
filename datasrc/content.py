@@ -402,6 +402,7 @@ container.sprites.Add(Sprite("pickup_ninja", set_game, 2,10,8,2))
 
 container.sprites.Add(Sprite("flag_blue", set_game, 12,8,4,8))
 container.sprites.Add(Sprite("flag_red", set_game, 16,8,4,8))
+container.sprites.Add(Sprite("flag_stand", set_game, 20,12,4,4))
 
 container.sprites.Add(Sprite("ninja_bar_full_left", set_game, 21,4,1,2))
 container.sprites.Add(Sprite("ninja_bar_full", set_game, 22,4,1,2))
