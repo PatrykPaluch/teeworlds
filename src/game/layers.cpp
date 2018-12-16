@@ -10,6 +10,8 @@ CLayers::CLayers()
 	m_LayersStart = 0;
 	m_pGameGroup = 0;
 	m_pGameLayer = 0;
+	m_pTeleLayer = 0;
+	m_pSpeedupLayer = 0;
 	m_pMap = 0;
 }
 

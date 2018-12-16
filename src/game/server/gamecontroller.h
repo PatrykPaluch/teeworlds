@@ -121,6 +121,7 @@ protected:
 public:
 	IGameController(class CGameContext *pGameServer);
 	virtual ~IGameController() {};
+	void DoRaceTimeCheck();
 
 	// event
 	/*

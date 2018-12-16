@@ -34,6 +34,21 @@ public:
 	void MovePoint(vec2 *pInoutPos, vec2 *pInoutVel, float Elasticity, int *pBounces) const;
 	void MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elasticity) const;
 	bool TestBox(vec2 Pos, vec2 Size) const;
+	
+	// race
+	int GetIndex(vec2 Pos);
+	int GetIndex(vec2 PrevPos, vec2 Pos);
+	vec2 GetPos(int Index);
+	int GetCollisionRace(int Index);
+	int IsTeleport(int Index);
+	int IsCheckpoint(int Indec);
+	int IsSpeedup(int Index);
+	void GetSpeedup(int Index, vec2 *Dir, int *Force);
+	
+	class CTeleTile *m_pTele;
+	class CSpeedupTile *m_pSpeedup;
+	
+	class CLayers *Layers() { return m_pLayers; }
 };
 
 #endif
