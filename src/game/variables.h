@@ -112,6 +112,27 @@ MACRO_CONFIG_INT(SvSpamprotection, sv_spamprotection, 1, 0, 1, CFGFLAG_SAVE|CFGF
 
 MACRO_CONFIG_INT(SvRespawnDelayTDM, sv_respawn_delay_tdm, 3, 0, 10, CFGFLAG_SAVE|CFGFLAG_SERVER, "Time needed to respawn after death in tdm gametype")
 
+// race server
+MACRO_CONFIG_INT(SvRegen, sv_regen, 0, 0, 50, CFGFLAG_SERVER, "Set regeneration")
+MACRO_CONFIG_INT(SvStrip, sv_strip, 0, 0, 1, CFGFLAG_SERVER, "Enable or disable keeping weapon after teleporting")
+MACRO_CONFIG_INT(SvInfiniteAmmo, sv_infinite_ammo, 0, 0, 1, CFGFLAG_SERVER, "Enable or disable infinite ammo")
+MACRO_CONFIG_INT(SvNoItems, sv_no_items, 0, 0, 1, CFGFLAG_SERVER, "removes any items from the map if there are any")
+MACRO_CONFIG_INT(SvTeleport, sv_teleport, 1, 0, 1, CFGFLAG_SERVER, "Enable or disable teleportation")
+MACRO_CONFIG_INT(SvTeleportGrenade, sv_teleport_grenade, 0, 0, 1, CFGFLAG_SERVER, "Enable or disable teleport of grenade")
+MACRO_CONFIG_INT(SvTeleportKill, sv_teleport_kill, 0, 0, 1, CFGFLAG_SERVER, "Teleporting one someone kills him")
+MACRO_CONFIG_INT(SvTeleportVelReset, sv_teleport_vel_reset, 0, 0, 1, CFGFLAG_SERVER, "Reset velocity after teleport")
+MACRO_CONFIG_INT(SvDeleteGrenadesAfterDeath, sv_delete_grenades_after_death, 1, 0, 1, CFGFLAG_SERVER, "Delete grenades after the player dies")
+MACRO_CONFIG_INT(SvRocketJumpDamage, sv_rocket_jump_damage, 1, 0, 1, CFGFLAG_SERVER, "Enable or disable rocket jump damage")
+MACRO_CONFIG_INT(SvPickupRespawn, sv_pickup_respawn, -1, -1, 120, CFGFLAG_SERVER, "Time before a pickup respawn")
+MACRO_CONFIG_INT(SvScoreIP, sv_score_ip, 1, 0, 1, CFGFLAG_SERVER, "Check score for ip, too")
+MACRO_CONFIG_INT(SvCheckpointSave, sv_checkpoint_save, 1, 0, 1, CFGFLAG_SERVER, "Save checkpoint times to score file")
+
+MACRO_CONFIG_INT(SvShowTimes, sv_show_times, 1, 0, 1, CFGFLAG_SERVER, "Shows the times of other players")
+MACRO_CONFIG_INT(SvShowOthers, sv_show_others, 1, 0, 1, CFGFLAG_SERVER, "Shows the other players")
+
+MACRO_CONFIG_STR(SvScoreFolder, sv_score_folder, 32, "records", CFGFLAG_SERVER, "Folder to save score files to")
+
+
 //MACRO_CONFIG_INT(SvSpectatorSlots, sv_spectator_slots, 0, 0, MAX_SPECTATORS, CFGFLAG_SAVE|CFGFLAG_SERVER, "Number of slots to reserve for spectators")
 MACRO_CONFIG_INT(SvPlayerSlots, sv_player_slots, 8, 0, MAX_PLAYERS, CFGFLAG_SAVE|CFGFLAG_SERVER, "Number of slots to reserve for players")
 MACRO_CONFIG_INT(SvSkillLevel, sv_skill_level, 1, SERVERINFO_LEVEL_MIN, SERVERINFO_LEVEL_MAX, CFGFLAG_SAVE|CFGFLAG_SERVER, "Supposed player skill level")
