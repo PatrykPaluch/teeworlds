@@ -420,7 +420,7 @@ int CEditor::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned Str
 	{
 		float w = TextRender()->TextWidth(0, FontSize, pDisplayStr, s_AtIndex);
 		Textbox = *pRect;
-		Textbox.VSplitLeft(2.0f, 0, &Textbox);
+		Textbox = Textbox << 2.0f;
 		Textbox.x += (w-*Offset-TextRender()->TextWidth(0, FontSize, "|", -1)/2);
 
 		if((2*time_get()/time_freq()) % 2)	// make it blink
@@ -883,7 +883,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_ShowDetail = !m_ShowDetail;
 	}
 
-	TB_Top.VSplitLeft(5.0f, 0, &TB_Top);
+	TB_Top = TB_Top << 5.0f;
 
 	// animation button
 	TB_Top.VSplitLeft(40.0f, &Button, &TB_Top);
@@ -895,7 +895,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_Animate = !m_Animate;
 	}
 
-	TB_Top.VSplitLeft(5.0f, 0, &TB_Top);
+	TB_Top = TB_Top << 5.0f;
 
 	// proof button
 	TB_Top.VSplitLeft(40.0f, &Button, &TB_Top);
@@ -906,7 +906,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_ProofBorders = !m_ProofBorders;
 	}
 
-	TB_Top.VSplitLeft(5.0f, 0, &TB_Top);
+	TB_Top = TB_Top << 5.0f;
 
 	// tile info button
 	TB_Top.VSplitLeft(40.0f, &Button, &TB_Top);
@@ -918,7 +918,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_ShowEnvelopePreview = SHOWENV_NONE;
 	}
 
-	TB_Top.VSplitLeft(15.0f, 0, &TB_Top);
+	TB_Top = TB_Top << 15.0f;
 
 	// zoom group
 	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
@@ -940,7 +940,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	if(DoButton_Ex(&s_ZoomInButton, "ZI", 0, &Button, 0, "[NumPad+] Zoom in", CUI::CORNER_R))
 		m_ZoomLevel -= 50;
 
-	TB_Top.VSplitLeft(10.0f, 0, &TB_Top);
+	TB_Top = TB_Top << 10.0f;
 
 	// animation speed
 	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
@@ -1061,7 +1061,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		}
 	}
 
-	TB_Bottom.VSplitLeft(5.0f, 0, &TB_Bottom);
+	TB_Bottom = TB_Bottom << 5.0f;
 
 	// refocus button
 	TB_Bottom.VSplitLeft(50.0f, &Button, &TB_Bottom);
@@ -1072,7 +1072,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_WorldOffsetY = 0;
 	}
 
-	TB_Bottom.VSplitLeft(5.0f, 0, &TB_Bottom);
+	TB_Bottom = TB_Bottom << 5.0f;
 
 	// grid button
 	TB_Bottom.VSplitLeft(50.0f, &Button, &TB_Bottom);
@@ -1082,7 +1082,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_GridActive = !m_GridActive;
 	}
 
-	TB_Bottom.VSplitLeft(30.0f, 0, &TB_Bottom);
+	TB_Bottom = TB_Bottom << 30.0f;
 
 	// grid zoom
 	TB_Bottom.VSplitLeft(30.0f, &Button, &TB_Bottom);
@@ -1107,7 +1107,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 			m_GridFactor++;
 	}
 
-	TB_Bottom.VSplitLeft(10.0f, 0, &TB_Bottom);
+	TB_Bottom = TB_Bottom << 10.0f;
 
 	// pipette / color picking
 	TB_Bottom.VSplitLeft(50.0f, &Button, &TB_Bottom);
@@ -1124,7 +1124,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	// display selected color
 	if(m_SelectedColor.a > 0.0f)
 	{
-		TB_Bottom.VSplitLeft(4.0f, 0, &TB_Bottom);
+		TB_Bottom = TB_Bottom << 4.0f;
 
 		TB_Bottom.VSplitLeft(24.0f, &Button, &TB_Bottom);
 		RenderTools()->DrawUIRect(&Button, m_SelectedColor, 0, 0.0f);
@@ -2489,7 +2489,7 @@ int CEditor::DoProperties(CUIRect *pToolBox, CProperty *pProps, int *pIDs, int *
 			CUIRect Left, Right, Up, Down;
 			Shifter.VSplitMid(&Left, &Up);
 			Left.VSplitRight(1.0f, &Left, 0);
-			Up.VSplitLeft(1.0f, 0, &Up);
+			Up = Up << 1.0f;
 			Left.VSplitLeft(10.0f, &Left, &Shifter);
 			Shifter.VSplitRight(10.0f, &Shifter, &Right);
 			RenderTools()->DrawUIRect(&Shifter, vec4(1,1,1,0.5f), 0, 0.0f);
@@ -3062,7 +3062,7 @@ void CEditor::AddFileDialogEntry(int Index, CUIRect *pView)
 	pView->HSplitTop(15.0f, &Button, pView);
 	pView->HSplitTop(2.0f, 0, pView);
 	Button.VSplitLeft(Button.h, &FileIcon, &Button);
-	Button.VSplitLeft(5.0f, 0, &Button);
+	Button = Button << 5.0f;
 
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_FILEICONS].m_Id);
 	Graphics()->QuadsBegin();
@@ -3284,7 +3284,7 @@ void CEditor::RenderFileDialog()
 
 	if(m_FileDialogStorageType == IStorage::TYPE_SAVE)
 	{
-		ButtonBar.VSplitLeft(40.0f, 0, &ButtonBar);
+		ButtonBar = ButtonBar << 40.0f;
 		ButtonBar.VSplitLeft(70.0f, &Button, &ButtonBar);
 		if(DoButton_Editor(&s_NewFolderButton, "New folder", 0, &Button, 0, 0))
 		{
@@ -3298,7 +3298,7 @@ void CEditor::RenderFileDialog()
 
 	if(m_FileDialogStorageType == IStorage::TYPE_SAVE)
 	{
-		ButtonBar.VSplitLeft(40.0f, 0, &ButtonBar);
+		ButtonBar = ButtonBar << 40.0f;
 		ButtonBar.VSplitLeft(70.0f, &Button, &ButtonBar);
 		if(DoButton_Editor(&s_MapInfoButton, "Map details", 0, &Button, 0, 0))
 		{
@@ -3377,7 +3377,7 @@ void CEditor::RenderModebar(CUIRect View)
 		}
 	}
 
-	View.VSplitLeft(5.0f, 0, &View);
+	View = View << 5.0f;
 }
 
 void CEditor::RenderStatusbar(CUIRect View)
@@ -4143,7 +4143,7 @@ void CEditor::RenderMenubar(CUIRect MenuBar)
 		UiInvokePopupMenu(&s_File, 1, s_File.x, s_File.y+s_File.h-1.0f, 120, 150, PopupMenuFile, this);
 
 	CUIRect Info;
-	MenuBar.VSplitLeft(40.0f, 0, &MenuBar);
+	MenuBar = MenuBar << 40.0f;
 	MenuBar.VSplitLeft(MenuBar.w*0.75f, &MenuBar, &Info);
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "File: %s", m_aFileName);

@@ -321,7 +321,7 @@ int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const c
 	c.w = c.h;
 	t.x += c.w;
 	t.w -= c.w;
-	t.VSplitLeft(5.0f, 0, &t);
+	t = t << 5.0f;
 
 	c.Margin(2.0f, &c);
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_MENUICONS].m_Id);
@@ -575,7 +575,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 	{
 		float w = TextRender()->TextWidth(0, FontSize, pDisplayStr, s_AtIndex);
 		Textbox = *pRect;
-		Textbox.VSplitLeft(2.0f, 0, &Textbox);
+		Textbox = Textbox << 2.0f;
 		Textbox.x += (w-*pOffset-TextRender()->TextWidth(0, FontSize, "|", -1)/2);
 
 		if((2*time_get()/time_freq()) % 2)	// make it blink
@@ -616,7 +616,7 @@ void CMenus::DoScrollbarOption(void *pID, int *pOption, const CUIRect *pRect, co
 	float VSplitVal = TextRender()->TextWidth(0, FontSize, aBuf, -1);
 
 	pRect->VSplitLeft(pRect->h+10.0f+VSplitVal, &Label, &ScrollBar);
-	Label.VSplitLeft(Label.h+5.0f, 0, &Label);
+	Label = Label << Label.h+5.0f;
 	Label.y += 2.0f;
 	UI()->DoLabel(&Label, aBuf, FontSize, CUI::ALIGN_LEFT);
 
@@ -873,7 +873,7 @@ void CMenus::UiDoListboxStart(CListBoxState* pState, const void *pID, float RowH
 	if(pBottomText)
 	{
 		View.HSplitBottom(ms_ListheaderHeight, &View, &Footer);
-		Footer.VSplitLeft(10.0f, 0, &Footer);
+		Footer = Footer << 10.0f;
 		Footer.y += 2.0f;
 		UI()->DoLabel(&Footer, pBottomText, Footer.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 	}
@@ -1171,19 +1171,19 @@ void CMenus::RenderMenubar(CUIRect Rect)
 		if(DoButton_MenuTabTop(&s_GameButton, Localize("Game"), m_ActivePage == PAGE_GAME, &Button, Alpha, Alpha))
 			NewPage = PAGE_GAME;
 
-		Left.VSplitLeft(Spacing, 0, &Left); // little space
+		Left = Left << Spacing; // little space
 		Left.VSplitLeft(ButtonWidth, &Button, &Left);
 		static CButtonContainer s_PlayersButton;
 		if(DoButton_MenuTabTop(&s_PlayersButton, Localize("Players"), m_ActivePage == PAGE_PLAYERS, &Button, Alpha, Alpha))
 			NewPage = PAGE_PLAYERS;
 
-		Left.VSplitLeft(Spacing, 0, &Left); // little space
+		Left = Left << Spacing; // little space
 		Left.VSplitLeft(ButtonWidth, &Button, &Left);
 		static CButtonContainer s_ServerInfoButton;
 		if(DoButton_MenuTabTop(&s_ServerInfoButton, Localize("Server info"), m_ActivePage == PAGE_SERVER_INFO, &Button, Alpha, Alpha))
 			NewPage = PAGE_SERVER_INFO;
 
-		Left.VSplitLeft(Spacing, 0, &Left); // little space
+		Left = Left << Spacing; // little space
 		Left.VSplitLeft(ButtonWidth, &Button, &Left);
 		static CButtonContainer s_CallVoteButton;
 		if(DoButton_MenuTabTop(&s_CallVoteButton, Localize("Call vote"), m_ActivePage == PAGE_CALLVOTE, &Button, Alpha, Alpha))
@@ -1219,7 +1219,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			g_Config.m_UiSettingsPage = SETTINGS_GENERAL;
 		}
 
-		Box.VSplitLeft(Spacing, 0, &Box); // little space
+		Box = Box << Spacing; // little space
 		Box.VSplitLeft(ButtonWidth, &Button, &Box);
 		{
 			static CButtonContainer s_PlayerButton;
@@ -1231,7 +1231,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			}
 		}
 
-		Box.VSplitLeft(Spacing, 0, &Box); // little space
+		Box = Box << Spacing; // little space
 		Box.VSplitLeft(ButtonWidth, &Button, &Box);
 		{
 			static CButtonContainer s_TeeButton;
@@ -1244,7 +1244,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 		}
 
 
-		Box.VSplitLeft(Spacing, 0, &Box); // little space
+		Box = Box << Spacing; // little space
 		Box.VSplitLeft(ButtonWidth, &Button, &Box);
 		static CButtonContainer s_ControlsButton;
 		if(DoButton_MenuTabTop(&s_ControlsButton, Localize("Controls"), Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiSettingsPage==SETTINGS_CONTROLS, &Button,
@@ -1254,7 +1254,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			g_Config.m_UiSettingsPage = SETTINGS_CONTROLS;
 		}
 
-		Box.VSplitLeft(Spacing, 0, &Box); // little space
+		Box = Box << Spacing; // little space
 		Box.VSplitLeft(ButtonWidth, &Button, &Box);
 		static CButtonContainer s_GraphicsButton;
 		if(DoButton_MenuTabTop(&s_GraphicsButton, Localize("Graphics"), Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiSettingsPage==SETTINGS_GRAPHICS, &Button,
@@ -1264,7 +1264,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 			g_Config.m_UiSettingsPage = SETTINGS_GRAPHICS;
 		}
 
-		Box.VSplitLeft(Spacing, 0, &Box); // little space
+		Box = Box << Spacing; // little space
 		Box.VSplitLeft(ButtonWidth, &Button, &Box);
 		static CButtonContainer s_SoundButton;
 		if(DoButton_MenuTabTop(&s_SoundButton, Localize("Sound"), Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiSettingsPage==SETTINGS_SOUND, &Button,
@@ -1300,7 +1300,7 @@ void CMenus::RenderMenubar(CUIRect Rect)
 				g_Config.m_UiBrowserPage = PAGE_INTERNET;
 			}
 
-			Left.VSplitLeft(Spacing, 0, &Left); // little space
+			Left = Left << Spacing; // little space
 			Left.VSplitLeft(ButtonWidth, &Button, &Left);
 			static CButtonContainer s_LanButton;
 			if(DoButton_MenuTabTop(&s_LanButton, Localize("Local"), m_ActivePage==PAGE_LAN, &Button))
@@ -1937,7 +1937,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW/2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW/2.0f, 0, &Yes);
+			Yes = Yes << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonAbort;
 			if(DoButton_Menu(&s_ButtonAbort, Localize("No"), 0, &No) || m_EscapePressed)
@@ -1963,7 +1963,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&Abort, &TryAgain);
 			Abort.VSplitRight(SpacingW/2.0f, &Abort, 0);
-			TryAgain.VSplitLeft(SpacingW/2.0f, 0, &TryAgain);
+			TryAgain = TryAgain << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonAbort;
 			if(DoButton_Menu(&s_ButtonAbort, Localize("Abort"), 0, &Abort) || m_EscapePressed)
@@ -2128,7 +2128,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW/2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW/2.0f, 0, &Yes);
+			Yes = Yes << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonNo;
 			if(DoButton_Menu(&s_ButtonNo, Localize("No"), 0, &No) || m_EscapePressed)
@@ -2169,7 +2169,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW/2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW/2.0f, 0, &Yes);
+			Yes = Yes << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonNo;
 			if(DoButton_Menu(&s_ButtonNo, Localize("No"), 0, &No) || m_EscapePressed)
@@ -2213,7 +2213,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW/2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW/2.0f, 0, &Yes);
+			Yes = Yes << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonNo;
 			if(DoButton_Menu(&s_ButtonNo, Localize("No"), 0, &No) || m_EscapePressed)
@@ -2243,7 +2243,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW / 2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW / 2.0f, 0, &Yes);
+			Yes = Yes << SpacingW / 2.0f;
 
 			static CButtonContainer s_ButtonNo;
 			if(DoButton_Menu(&s_ButtonNo, Localize("No"), 0, &No) || m_EscapePressed)
@@ -2277,7 +2277,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW/2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW/2.0f, 0, &Yes);
+			Yes = Yes << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonAbort;
 			if(DoButton_Menu(&s_ButtonAbort, Localize("No"), 0, &No) || m_EscapePressed)
@@ -2304,7 +2304,7 @@ int CMenus::Render()
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);
 			No.VSplitRight(SpacingW/2.0f, &No, 0);
-			Yes.VSplitLeft(SpacingW/2.0f, 0, &Yes);
+			Yes = Yes << SpacingW/2.0f;
 
 			static CButtonContainer s_ButtonNo;
 			if(DoButton_Menu(&s_ButtonNo, Localize("No"), 0, &No) || m_EscapePressed)

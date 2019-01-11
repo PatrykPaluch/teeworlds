@@ -45,7 +45,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		TotalHeight = SeekBarHeight+Margins*2;
 
 	MainView.HSplitBottom(TotalHeight, 0, &MainView);
-	MainView.VSplitLeft(50.0f, 0, &MainView);
+	MainView = MainView << 50.0f;
 	MainView.VSplitRight(450.0f, &MainView, 0);
 
 	if (m_SeekBarActive || m_MenuActive) // only draw the background if SeekBar or Menu is active
@@ -192,7 +192,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 
 		// stop button
 
-		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
+		ButtonBar = ButtonBar << Margins;
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static CButtonContainer s_ResetButton;
 		if(DoButton_SpriteID(&s_ResetButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_STOP, false, &Button, CUI::CORNER_ALL))
@@ -203,21 +203,21 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		}
 
 		// slowdown
-		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
+		ButtonBar = ButtonBar << Margins;
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static CButtonContainer s_SlowDownButton;
 		if(DoButton_SpriteID(&s_SlowDownButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_SLOWER, false, &Button, CUI::CORNER_ALL))
 			DecreaseDemoSpeed = true;
 
 		// fastforward
-		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
+		ButtonBar = ButtonBar << Margins;
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static CButtonContainer s_FastForwardButton;
 		if(DoButton_SpriteID(&s_FastForwardButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_FASTER, false, &Button, CUI::CORNER_ALL))
 			IncreaseDemoSpeed = true;
 
 		// speed meter
-		ButtonBar.VSplitLeft(Margins*3, 0, &ButtonBar);
+		ButtonBar = ButtonBar << Margins*3;
 		char aBuffer[64];
 		if(pInfo->m_Speed >= 1.0f)
 			str_format(aBuffer, sizeof(aBuffer), "x%.0f", pInfo->m_Speed);
@@ -383,7 +383,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		if(Item.m_Visible)
 		{
 			Item.m_Rect.VSplitLeft(Item.m_Rect.h, &FileIcon, &Item.m_Rect);
-			Item.m_Rect.VSplitLeft(5.0f, 0, &Item.m_Rect);
+			Item.m_Rect = Item.m_Rect << 5.0f;
 			FileIcon.Margin(3.0f, &FileIcon);
 			FileIcon.x += 3.0f;
 
@@ -471,7 +471,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 
 		MainView.HSplitTop(Spacing, 0, &MainView);
 		MainView.HSplitTop(ButtonHeight, &Button, &MainView);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 
 		CUIRect ButtonRight;
 		Button.VSplitMid(&Button, &ButtonRight);
@@ -492,7 +492,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
 	float BackgroundWidth = ButtonWidth*(float)NumButtons+(float)(NumButtons-1)*Spacing;
 
-	BottomView.VSplitRight(BackgroundWidth, 0, &BottomView);
+	BottomView = BottomView >> BackgroundWidth;
 	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	BottomView.HSplitTop(25.0f, &BottomView, 0);
@@ -506,7 +506,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 
 	if(!m_DemolistSelectedIsDir)
 	{
-		BottomView.VSplitLeft(Spacing, 0, &BottomView);
+		BottomView = BottomView << Spacing;
 		BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 		static CButtonContainer s_DeleteButton;
 		if(DoButton_Menu(&s_DeleteButton, Localize("Delete"), 0, &Button) || m_DeletePressed)
@@ -519,7 +519,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 			}
 		}
 
-		BottomView.VSplitLeft(Spacing, 0, &BottomView);
+		BottomView = BottomView << Spacing;
 		BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 		static CButtonContainer s_RenameButton;
 		if(DoButton_Menu(&s_RenameButton, Localize("Rename"), 0, &Button))
@@ -534,7 +534,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		}
 	}
 
-	BottomView.VSplitLeft(Spacing, 0, &BottomView);
+	BottomView = BottomView << Spacing;
 	BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
 	static CButtonContainer s_PlayButton;
 	if(DoButton_Menu(&s_PlayButton, m_DemolistSelectedIsDir?Localize("Open"):Localize("Play", "DemoBrowser"), 0, &Button) || Activated)

@@ -636,10 +636,10 @@ void CMenus::RenderFilterHeader(CUIRect View, int FilterIndex)
 	DoIcon(IMAGE_MENUICONS, pFilter->Extended() ? SPRITE_MENU_EXPANDED : SPRITE_MENU_COLLAPSED, &Button);
 	
 	// split buttons from label
-	View.VSplitLeft(Spacing, 0, &View);
+	View = View << Spacing;
 	View.VSplitRight((ButtonHeight+Spacing)*4.0f, &View, &EditButtons);
 
-	View.VSplitLeft(20.0f, 0, &View); // little space
+	View = View << 20.0f; // little space
 	View.y += 2.0f;
 	UI()->DoLabel(&View, pFilter->Name(), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
 
@@ -805,7 +805,7 @@ void CMenus::RenderServerbrowserOverlay()
 				vec4 Colour = pInfo->m_aClients[i].m_FriendState == IFriends::FRIEND_NO ? vec4(1.0f, 1.0f, 1.0f, (i%2+1)*0.05f) :
 																									vec4(0.5f, 1.0f, 0.5f, 0.15f+(i%2+1)*0.05f);
 				RenderTools()->DrawUIRect(&Name, Colour, CUI::CORNER_ALL, 4.0f);
-				Name.VSplitLeft(5.0f, 0, &Name);
+				Name = Name << 5.0f;
 				Name.VSplitLeft(30.0f, &Score, &Name);
 				Name.VSplitRight(34.0f, &Name, &Flag);
 				Flag.HMargin(4.0f, &Flag);
@@ -1422,19 +1422,19 @@ void CMenus::RenderServerbrowserFriendTab(CUIRect View)
 				vec4 Colour = (i == FRIEND_PLAYER_ON) ? vec4(0.5f, 1.0f, 0.5f, 0.15f) :
 					(i == FRIEND_CLAN_ON || !m_lFriendList[i][f].m_aName[0]) ? vec4(0.0f, 0.0f, 0.0f, 0.15f) : vec4(1.0f, 0.5f, 0.5f, 0.15f);
 				RenderTools()->DrawUIRect(&Button, Colour, CUI::CORNER_T, 4.0f);
-				Button.VSplitLeft(2.0f, 0, &Button);
+				Button = Button << 2.0f;
 				UI()->DoLabelScaled(&Button, m_lFriendList[i][f].m_aName, FontSize - 2, CUI::ALIGN_LEFT);
 				// clan
 				Rect.HSplitTop(10.0f, &Button, &Rect);
 				Colour = (i != FRIEND_OFF) ? vec4(0.5f, 1.0f, 0.5f, 0.15f) : vec4(1.0f, 0.5f, 0.5f, 0.15f);
 				RenderTools()->DrawUIRect(&Button, Colour, CUI::CORNER_B, 4.0f);
-				Button.VSplitLeft(2.0f, 0, &Button);
+				Button = Button << 2.0f;
 				UI()->DoLabelScaled(&Button, m_lFriendList[i][f].m_aClan, FontSize - 2, CUI::ALIGN_LEFT);
 				// info
 				if(m_lFriendList[i][f].m_pServerInfo)
 				{
 					Rect.HSplitTop(ms_ListheaderHeight, &Button, &Rect);
-					Button.VSplitLeft(2.0f, 0, &Button);
+					Button = Button << 2.0f;
 					if(m_lFriendList[i][f].m_IsPlayer)
 						str_format(aBuf, sizeof(aBuf), Localize("Playing '%s' on '%s'", "Playing '(gametype)' on '(map)'"), m_lFriendList[i][f].m_pServerInfo->m_aGameType, m_lFriendList[i][f].m_pServerInfo->m_aMap);
 					else
@@ -1657,7 +1657,7 @@ void CMenus::RenderServerbrowserFilterTab(CUIRect View)
 			Button.VSplitLeft(CurLength, &Icon, &Button);
 			RenderTools()->DrawUIRect(&Icon, vec4(0.75, 0.75, 0.75, 0.25f), CUI::CORNER_ALL, 3.0f);
 			UI()->DoLabelScaled(&Icon, FilterInfo.m_aGametype[i], FontSize, CUI::ALIGN_LEFT);
-			Icon.VSplitRight(10.0f, 0, &Icon);
+			Icon = Icon >> 10.0f;
 			if(DoButton_SpriteClean(IMAGE_TOOLICONS, SPRITE_TOOL_X_B, &Icon))
 			{
 				// remove gametype entry
@@ -1672,7 +1672,7 @@ void CMenus::RenderServerbrowserFilterTab(CUIRect View)
 				}
 				pFilter->SetFilter(&FilterInfo);
 			}
-			Button.VSplitLeft(2.0f, 0, &Button);
+			Button = Button << 2.0f;
 		}
 	}
 
@@ -1710,7 +1710,7 @@ void CMenus::RenderServerbrowserFilterTab(CUIRect View)
 			}
 		}
 	}
-	Icon.VSplitLeft(10.0f, 0, &Icon);
+	Icon = Icon << 10.0f;
 	Icon.VSplitLeft(40.0f, &Button, 0);
 	static CButtonContainer s_ClearGametypes;
 	if(DoButton_MenuTabTop(&s_ClearGametypes, Localize("Clear", "clear gametype filters"), false, &Button))
@@ -1749,7 +1749,7 @@ void CMenus::RenderServerbrowserFilterTab(CUIRect View)
 	ServerFilter.HSplitTop(3.0f, 0, &ServerFilter);
 	ServerFilter.HSplitTop(LineSize, &Button, &ServerFilter);
 	UI()->DoLabelScaled(&Button, Localize("Server address:"), FontSize, CUI::ALIGN_LEFT);
-	Button.VSplitRight(60.0f, 0, &Button);
+	Button = Button >> 60.0f;
 	static float OffsetAddr = 0.0f;
 	static int s_BrFilterServerAddress = 0;
 	if(DoEditBox(&s_BrFilterServerAddress, &Button, FilterInfo.m_aAddress, sizeof(FilterInfo.m_aAddress), FontSize, &OffsetAddr))
@@ -1783,7 +1783,7 @@ void CMenus::RenderServerbrowserFilterTab(CUIRect View)
 
 	ServerFilter.HSplitTop(LineSize + 2, &Button, &ServerFilter);
 	UI()->DoLabelScaled(&Button, Localize("Difficulty"), FontSize, CUI::ALIGN_LEFT);
-	Button.VSplitRight(60.0f, 0, &Button);
+	Button = Button >> 60.0f;
 	Button.y -= 2.0f;
 	Button.VSplitLeft(Button.h, &Icon, &Button);
 	static CButtonContainer s_LevelButton1;
@@ -2000,7 +2000,7 @@ void CMenus::RenderDetailScoreboard(CUIRect View, const CServerInfo *pInfo, int 
 			if(pInfo->m_aClients[i].m_FriendState != IFriends::FRIEND_NO)
 				DoIcon(IMAGE_BROWSEICONS, SPRITE_BROWSE_HEART_A, &Icon);
 
-			Name.VSplitLeft(2.0f, 0, &Name);
+			Name = Name << 2.0f;
 			Name.VSplitLeft(20.0f, &Score, &Name);
 			Name.VSplitRight(2*(Name.h-8.0f), &Name, &Flag);
 			Flag.HMargin(4.0f, &Flag);
@@ -2120,7 +2120,7 @@ void CMenus::RenderServerbrowserBottomBox(CUIRect MainView)
 			ServerBrowser()->Refresh(IServerBrowser::REFRESHFLAG_LAN);
 	}
 
-	MainView.VSplitLeft(Spacing, 0, &MainView); // little space
+	MainView = MainView << Spacing; // little space
 	MainView.VSplitLeft(ButtonWidth, &Button, &MainView);
 	static CButtonContainer s_JoinButton;
 	if(DoButton_Menu(&s_JoinButton, Localize("Connect"), 0, &Button) || m_EnterPressed)
@@ -2238,7 +2238,7 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 	float Spacing = 3.0f;
 	float ButtonWidth = (BottomBox.w/6.0f)-(Spacing*5.0)/6.0f;
 	BottomBox.VSplitRight(20.0f, &BottomBox, 0);
-	BottomBox.VSplitRight(ButtonWidth*2.0f+Spacing, 0, &BottomBox);
+	BottomBox = BottomBox >> ButtonWidth*2.0f+Spacing;
 
 	RenderServerbrowserBottomBox(BottomBox);
 

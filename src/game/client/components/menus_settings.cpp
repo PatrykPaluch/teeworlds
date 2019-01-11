@@ -908,7 +908,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 	Game.VSplitMid(&GameLeft, &GameRight);
 	GameLeft.VSplitRight(Spacing * 0.5f, &GameLeft, 0);
-	GameRight.VSplitLeft(Spacing * 0.5f, 0, &GameRight);
+	GameRight = GameRight << Spacing * 0.5f;
 
 	// left side
 	GameLeft.HSplitTop(Spacing, 0, &GameLeft);
@@ -950,19 +950,19 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	{
 		GameLeft.HSplitTop(Spacing, 0, &GameLeft);
 		GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		static int s_NameplatesAlways = 0;
 		if(DoButton_CheckBox(&s_NameplatesAlways, Localize("Always show name plates"), g_Config.m_ClNameplatesAlways, &Button))
 			g_Config.m_ClNameplatesAlways ^= 1;
 
 		GameLeft.HSplitTop(Spacing, 0, &GameLeft);
 		GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		DoScrollbarOption(&g_Config.m_ClNameplatesSize, &g_Config.m_ClNameplatesSize, &Button, Localize("Size"), 0, 100);
 
 		GameLeft.HSplitTop(Spacing, 0, &GameLeft);
 		GameLeft.HSplitTop(ButtonHeight, &Button, &GameLeft);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		static int s_NameplatesTeamcolors = 0;
 		if(DoButton_CheckBox(&s_NameplatesTeamcolors, Localize("Use team colors for name plates"), g_Config.m_ClNameplatesTeamcolors, &Button))
 			g_Config.m_ClNameplatesTeamcolors ^= 1;
@@ -992,10 +992,10 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	{
 		GameRight.HSplitTop(Spacing, 0, &GameRight);
 		GameRight.HSplitTop(ButtonHeight, &Button, &GameRight);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		RenderTools()->DrawUIRect(&Button, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 		CUIRect Text;
-		Button.VSplitLeft(ButtonHeight+5.0f, 0, &Button);
+		Button = Button << ButtonHeight+5.0f;
 		Button.VSplitLeft(200.0f, &Text, &Button);
 
 		char aBuf[32];
@@ -1043,7 +1043,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	{
 		Client.HSplitTop(Spacing, 0, &Client);
 		Client.HSplitTop(ButtonHeight, &Button, &Client);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		DoScrollbarOption(&g_Config.m_ClAutoDemoMax, &g_Config.m_ClAutoDemoMax, &Button, Localize("Max"), 0, 1000, true);
 	}
 
@@ -1057,7 +1057,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	{
 		Client.HSplitTop(Spacing, 0, &Client);
 		Client.HSplitTop(ButtonHeight, &Button, &Client);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		DoScrollbarOption(&g_Config.m_ClAutoScreenshotMax, &g_Config.m_ClAutoScreenshotMax, &Button, Localize("Max"), 0, 1000, true);
 	}
 
@@ -1067,7 +1067,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	CUIRect LanguageView, ThemeView;
 	MainView.VSplitMid(&LanguageView, &ThemeView);
 	LanguageView.VSplitRight(1, &LanguageView, 0);
-	ThemeView.VSplitLeft(1, 0, &ThemeView);
+	ThemeView = ThemeView << 1;
 	RenderLanguageSelection(LanguageView);
 	RenderThemeSelection(ThemeView);
 
@@ -1075,7 +1075,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 	Spacing = 3.0f;
 	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
 
-	BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
+	BottomView = BottomView >> ButtonWidth;
 	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	BottomView.HSplitTop(25.0f, &BottomView, 0);
@@ -1137,7 +1137,7 @@ void CMenus::RenderSettingsPlayer(CUIRect MainView)
 	TopView.HSplitTop(Spacing, 0, &TopView);
 	TopView.VSplitMid(&Left, &Right);
 	Left.VSplitRight(1.5f, &Left, 0);
-	Right.VSplitLeft(1.5f, 0, &Right);
+	Right = Right << 1.5f;
 
 	// left menu
 	Left.HSplitTop(ButtonHeight, &Button, &Left);
@@ -1240,13 +1240,13 @@ void CMenus::RenderSettingsTeeCustom(CUIRect MainView)
 		{
 			m_TeePartSelected = i;
 		}
-		Patterns.VSplitLeft(SpacingW, 0, &Patterns);
+		Patterns = Patterns << SpacingW;
 	}
 
 	MainView.HSplitTop(SpacingH, 0, &MainView);
 	MainView.VSplitMid(&Left, &Right);
 	Left.VSplitRight(SpacingW/2.0f, &Left, 0);
-	Right.VSplitLeft(SpacingW/2.0f, 0, &Right);
+	Right = Right << SpacingW/2.0f;
 
 	// part selection
 	RenderSkinPartSelection(Left);
@@ -1299,7 +1299,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		// split the menu in 2 parts
 		Left.VSplitMid(&Left, &Right);
 		Left.VSplitRight(SpacingW/2.0f, &Left, 0);
-		Right.VSplitLeft(SpacingW/2.0f, 0, &Right);
+		Right = Right << SpacingW/2.0f;
 
 		// handle left
 		RenderTools()->DrawUIRect(&Left, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
@@ -1338,7 +1338,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 
 		Right.VSplitMid(&Left, &Right);
 		Left.VSplitRight(SpacingW/2.0f, &Left, 0);
-		Right.VSplitLeft(SpacingW/2.0f, 0, &Right);
+		Right = Right << SpacingW/2.0f;
 
 		RenderTools()->DrawUIRect(&Left, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 
@@ -1379,7 +1379,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 	float ButtonWidth = (BottomView.w/6.0f)-(SpacingW*5.0)/6.0f;
 	float BackgroundWidth = s_CustomSkinMenu||(m_pSelectedSkin && (m_pSelectedSkin->m_Flags&CSkins::SKINFLAG_STANDARD) == 0) ? ButtonWidth*2.0f+SpacingW : ButtonWidth;
 
-	BottomView.VSplitRight(BackgroundWidth, 0, &BottomView);
+	BottomView = BottomView >> BackgroundWidth;
 	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	BottomView.HSplitTop(25.0f, &BottomView, 0);
@@ -1389,7 +1389,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		static CButtonContainer s_CustomSkinSaveButton;
 		if(DoButton_Menu(&s_CustomSkinSaveButton, Localize("Save"), 0, &Button))
 			m_Popup = POPUP_SAVE_SKIN;
-		BottomView.VSplitLeft(SpacingW, 0, &BottomView);
+		BottomView = BottomView << SpacingW;
 	}
 	else if(m_pSelectedSkin && (m_pSelectedSkin->m_Flags&CSkins::SKINFLAG_STANDARD) == 0)
 	{
@@ -1397,7 +1397,7 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		static CButtonContainer s_CustomSkinDeleteButton;
 		if(DoButton_Menu(&s_CustomSkinDeleteButton, Localize("Delete"), 0, &Button))
 			m_Popup = POPUP_DELETE_SKIN;
-		BottomView.VSplitLeft(SpacingW, 0, &BottomView);
+		BottomView = BottomView << SpacingW;
 	}
 
 	BottomView.VSplitLeft(ButtonWidth, &Button, &BottomView);
@@ -1496,7 +1496,7 @@ void CMenus::RenderSettingsControls(CUIRect MainView)
 	float Spacing = 3.0f;
 	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
 
-	BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
+	BottomView = BottomView >> ButtonWidth;
 	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	BottomView.HSplitTop(25.0f, &BottomView, 0);
@@ -1611,7 +1611,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 
 	ScreenLeft.VSplitMid(&ScreenLeft, &ScreenRight);
 	ScreenLeft.VSplitRight(Spacing * 0.5f, &ScreenLeft, 0);
-	ScreenRight.VSplitLeft(Spacing * 0.5f, 0, &ScreenRight);
+	ScreenRight = ScreenRight << Spacing * 0.5f;
 
 	ScreenLeft.HSplitTop(Spacing, 0, &ScreenLeft);
 	ScreenLeft.HSplitTop(ButtonHeight, &Button, &ScreenLeft);
@@ -1623,7 +1623,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 	{
 		ScreenLeft.HSplitTop(Spacing, 0, &ScreenLeft);
 		ScreenLeft.HSplitTop(ButtonHeight, &Button, &ScreenLeft);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		static int s_ButtonGfxBorderless = 0;
 		if(DoButton_CheckBox(&s_ButtonGfxBorderless, Localize("Borderless window"), g_Config.m_GfxBorderless, &Button))
 			Client()->ToggleWindowBordered();
@@ -1635,7 +1635,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 		ScreenLeft.HSplitTop(ButtonHeight, &Button, &ScreenLeft);
 		RenderTools()->DrawUIRect(&Button, vec4(0.0f, 0.0f, 0.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
 		CUIRect Text;
-		Button.VSplitLeft(ButtonHeight+5.0f, 0, &Button);
+		Button = Button << ButtonHeight+5.0f;
 		Button.VSplitLeft(100.0f, &Text, &Button);
 
 		char aBuf[32];
@@ -1746,7 +1746,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 		CUIRect HeaderLeft, HeaderRight;
 		Button.VSplitMid(&HeaderLeft, &HeaderRight);
 		HeaderLeft.VSplitRight(1.5f, &HeaderLeft, 0);
-		HeaderRight.VSplitLeft(1.5f, 0, &HeaderRight);
+		HeaderRight = HeaderRight << 1.5f;
 
 		RenderTools()->DrawUIRect(&HeaderLeft, vec4(0.30f, 0.4f, 1.0f, 0.5f), CUI::CORNER_T, 5.0f);
 		RenderTools()->DrawUIRect(&HeaderRight, vec4(0.0f, 0.0f, 0.0f, 0.5f), CUI::CORNER_T, 5.0f);
@@ -1774,7 +1774,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 		UI()->DoLabel(&Button, aBuf, Button.h*ms_FontmodHeight*0.8f, CUI::ALIGN_CENTER);
 
 		ListRec.VSplitRight(1.5f, &ListRec, 0);
-		ListOth.VSplitLeft(1.5f, 0, &ListOth);
+		ListOth = ListOth << 1.5f;
 
 		static CListBoxState s_RecListBoxState;
 		static CListBoxState s_OthListBoxState;
@@ -1786,7 +1786,7 @@ void CMenus::RenderSettingsGraphics(CUIRect MainView)
 	Spacing = 3.0f;
 	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
 
-	BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
+	BottomView = BottomView >> ButtonWidth;
 	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	BottomView.HSplitTop(25.0f, &BottomView, 0);
@@ -1876,7 +1876,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	{
 		Sound.HSplitTop(Spacing, 0, &Sound);
 		Sound.HSplitTop(ButtonHeight, &Button, &Sound);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		static int s_ButtonSndMusic = 0;
 		if(DoButton_CheckBox(&s_ButtonSndMusic, Localize("Play background music"), g_Config.m_SndMusic, &Button))
 		{
@@ -1886,7 +1886,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 
 		Sound.HSplitTop(Spacing, 0, &Sound);
 		Sound.HSplitTop(ButtonHeight, &Button, &Sound);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		static int s_ButtonSndNonactiveMute = 0;
 		if(DoButton_CheckBox(&s_ButtonSndNonactiveMute, Localize("Mute when not active"), g_Config.m_SndNonactiveMute, &Button))
 			g_Config.m_SndNonactiveMute ^= 1;
@@ -1901,7 +1901,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 		Detail.HSplitTop(Spacing, 0, &Detail);
 		Detail.VSplitMid(&Left, &Right);
 		Left.VSplitRight(1.5f, &Left, 0);
-		Right.VSplitLeft(1.5f, 0, &Right);
+		Right = Right << 1.5f;
 
 		// sample rate thingy
 		{
@@ -1945,7 +1945,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	{
 		Sound.HSplitTop(Spacing, 0, &Sound);
 		Sound.HSplitTop(ButtonHeight, &Button, &Sound);
-		Button.VSplitLeft(ButtonHeight, 0, &Button);
+		Button = Button << ButtonHeight;
 		static int s_ButtonInitSounds = 0;
 		if(DoButton_CheckBox(&s_ButtonInitSounds, Localize("Load the sound system"), g_Config.m_SndInit, &Button))
 		{
@@ -1974,7 +1974,7 @@ void CMenus::RenderSettingsSound(CUIRect MainView)
 	Spacing = 3.0f;
 	float ButtonWidth = (BottomView.w/6.0f)-(Spacing*5.0)/6.0f;
 
-	BottomView.VSplitRight(ButtonWidth, 0, &BottomView);
+	BottomView = BottomView >> ButtonWidth;
 	RenderTools()->DrawUIRect4(&BottomView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
 
 	BottomView.HSplitTop(25.0f, &BottomView, 0);

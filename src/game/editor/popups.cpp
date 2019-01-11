@@ -183,7 +183,7 @@ int CEditor::PopupGroup(CEditor *pEditor, CUIRect View)
 		View.HSplitBottom(12.0f, &View, &Button);
 		static float s_Name = 0;
 		pEditor->UI()->DoLabel(&Button, "Name:", 10.0f, CUI::ALIGN_LEFT);
-		Button.VSplitLeft(40.0f, 0, &Button);
+		Button = Button << 40.0f;
 		if(pEditor->DoEditBox(&s_Name, &Button, pEditor->m_Map.m_lGroups[pEditor->m_SelectedGroup]->m_aName, sizeof(pEditor->m_Map.m_lGroups[pEditor->m_SelectedGroup]->m_aName), 10.0f, &s_Name))
 			pEditor->m_Map.m_Modified = true;
 	}
@@ -271,7 +271,7 @@ int CEditor::PopupLayer(CEditor *pEditor, CUIRect View)
 		View.HSplitBottom(12.0f, &View, &Button);
 		static float s_Name = 0;
 		pEditor->UI()->DoLabel(&Button, "Name:", 10.0f, CUI::ALIGN_LEFT);
-		Button.VSplitLeft(40.0f, 0, &Button);
+		Button = Button << 40.0f;
 		if(pEditor->DoEditBox(&s_Name, &Button, pEditor->GetSelectedLayer(0)->m_aName, sizeof(pEditor->GetSelectedLayer(0)->m_aName), 10.0f, &s_Name))
 			pEditor->m_Map.m_Modified = true;
 	}
@@ -639,7 +639,7 @@ int CEditor::PopupNewFolder(CEditor *pEditor, CUIRect View)
 		pEditor->UI()->DoLabel(&Label, "Name:", 10.0f, CUI::ALIGN_LEFT);
 
 		// button bar
-		ButtonBar.VSplitLeft(30.0f, 0, &ButtonBar);
+		ButtonBar = ButtonBar << 30.0f;
 		ButtonBar.VSplitLeft(110.0f, &Label, &ButtonBar);
 		static int s_CreateButton = 0;
 		if(pEditor->DoButton_Editor(&s_CreateButton, "Create", 0, &Label, 0, 0))
@@ -731,7 +731,7 @@ int CEditor::PopupMapInfo(CEditor *pEditor, CUIRect View)
 	pEditor->DoEditBox(&s_LicenseBox, &Button, pEditor->m_Map.m_MapInfoTmp.m_aLicense, sizeof(pEditor->m_Map.m_MapInfoTmp.m_aLicense), 10.0f, &s_LicenseBox);
 
 	// button bar
-	ButtonBar.VSplitLeft(30.0f, 0, &ButtonBar);
+	ButtonBar = ButtonBar << 30.0f;
 	ButtonBar.VSplitLeft(110.0f, &Label, &ButtonBar);
 	static int s_CreateButton = 0;
 	if(pEditor->DoButton_Editor(&s_CreateButton, "Save", 0, &Label, 0, 0))
@@ -785,7 +785,7 @@ int CEditor::PopupEvent(CEditor *pEditor, CUIRect View)
 		pEditor->UI()->DoLabel(&Label, "The file already exists.\nDo you want to overwrite the map?", 10.0f, CUI::ALIGN_LEFT);
 
 	// button bar
-	ButtonBar.VSplitLeft(30.0f, 0, &ButtonBar);
+	ButtonBar = ButtonBar << 30.0f;
 	ButtonBar.VSplitLeft(110.0f, &Label, &ButtonBar);
 	static int s_OkButton = 0;
 	if(pEditor->DoButton_Editor(&s_OkButton, "Ok", 0, &Label, 0, 0))
