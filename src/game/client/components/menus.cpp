@@ -343,7 +343,7 @@ int CMenus::DoButton_CheckBox_Common(const void *pID, const char *pText, const c
 
 	t.y += 1.0f; // lame fix
 	UI()->DoLabel(&c, pBoxText, pRect->h*ms_FontmodHeight*0.6f, CUI::ALIGN_CENTER);
-	UI()->DoLabel(&t, pText, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT);
+	UI()->DoLabel(&t, pText, pRect->h*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT, -1, true, UI()->HotItem() == pID);
 	return UI()->DoButtonLogic(pID, pText, 0, pRect);
 }
 

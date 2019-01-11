@@ -393,10 +393,19 @@ int CUI::DoButton(const void *id, const char *text, int checked, const CUIRect *
 	return ret;
 }*/
 
-void CUI::DoLabel(const CUIRect *r, const char *pText, float Size, EAlignment Align, int MaxWidth, bool MultiLine)
+void CUI::DoLabel(const CUIRect *r, const char *pText, float Size, EAlignment Align, int MaxWidth, bool MultiLine, bool Outline)
 {
 	// TODO: FIX ME!!!!
 	//Graphics()->BlendNormal();
+
+	if(Outline)
+	{
+		const vec4 ColorHighlightOutline(1.0f, 1.0f, 1.0f, mix(0.3f, 1.0f, 0.f));
+		TextRender()->TextOutlineColor(ColorHighlightOutline.r, ColorHighlightOutline.g, ColorHighlightOutline.b, ColorHighlightOutline.a);
+	}
+	else
+		TextRender()->TextOutlineColor(0.f,0.f,0.f,0.f);
+
 	switch(Align)
 	{
 	case ALIGN_CENTER:
