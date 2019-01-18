@@ -1613,12 +1613,12 @@ void CClient::Update()
 			int PrevPredTick = (int)(PredNow*50/time_freq());
 			int NewPredTick = PrevPredTick+1;
 
-			m_GameIntraTick = (Now - PrevtickStart) / (float)(CurtickStart-PrevtickStart);
-			m_GameTickTime = (Now - PrevtickStart) / (float)Freq; //(float)SERVER_TICK_SPEED);
+			m_GameIntraTick = (Now - PrevtickStart) / (CurtickStart-PrevtickStart);
+			m_GameTickTime = (Now - PrevtickStart) / Freq;
 
 			CurtickStart = NewPredTick*time_freq()/50;
 			PrevtickStart = PrevPredTick*time_freq()/50;
-			m_PredIntraTick = (PredNow - PrevtickStart) / (float)(CurtickStart-PrevtickStart);
+			m_PredIntraTick = (PredNow - PrevtickStart) / (CurtickStart-PrevtickStart);
 
 			if(NewPredTick < m_aSnapshots[SNAP_PREV]->m_Tick-SERVER_TICK_SPEED || NewPredTick > m_aSnapshots[SNAP_PREV]->m_Tick+SERVER_TICK_SPEED)
 			{

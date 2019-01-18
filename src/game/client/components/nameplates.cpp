@@ -17,7 +17,7 @@ void CNamePlates::RenderNameplate(
 	int ClientID
 	)
 {
-	float IntraTick = Client()->IntraGameTick();
+	int IntraTick = Client()->IntraGameTick();
 
 	vec2 Position = mix(vec2(pPrevChar->m_X, pPrevChar->m_Y), vec2(pPlayerChar->m_X, pPlayerChar->m_Y), IntraTick);
 

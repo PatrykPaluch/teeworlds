@@ -17,14 +17,14 @@ protected:
 	// quick access to time variables
 	int m_PrevGameTick;
 	int m_CurGameTick;
-	float m_GameIntraTick;
-	float m_GameTickTime;
+	int m_GameIntraTick;
+	int m_GameTickTime;
 
 	int m_CurMenuTick;
 	int64 m_MenuStartTime;
 
 	int m_PredTick;
-	float m_PredIntraTick;
+	int m_PredIntraTick;
 
 	float m_LocalTime;
 	float m_RenderFrameTime;
@@ -67,9 +67,9 @@ public:
 	inline int GameTick() const { return m_CurGameTick; }
 	inline int MenuTick() const { return m_CurMenuTick; }
 	inline int PredGameTick() const { return m_PredTick; }
-	inline float IntraGameTick() const { return m_GameIntraTick; }
-	inline float PredIntraGameTick() const { return m_PredIntraTick; }
-	inline float GameTickTime() const { return m_GameTickTime; }
+	inline int IntraGameTick() const { return m_GameIntraTick; }
+	inline int PredIntraGameTick() const { return m_PredIntraTick; } // !
+	inline int GameTickTime() const { return m_GameTickTime; }
 	inline int GameTickSpeed() const { return m_GameTickSpeed; }
 
 	// other time access

@@ -52,7 +52,7 @@ void CPlayers::RenderHook(
 
 	CTeeRenderInfo RenderInfo = m_aRenderInfo[ClientID];
 
-	float IntraTick = Client()->IntraGameTick();
+	int IntraTick = Client()->IntraGameTick();
 
 	// set size
 	RenderInfo.m_Size = 64.0f;
@@ -157,7 +157,7 @@ void CPlayers::RenderPlayer(
 	// set size
 	RenderInfo.m_Size = 64.0f;
 
-	float IntraTick = Client()->IntraGameTick();
+	int IntraTick = Client()->IntraGameTick();
 
 	if(Prev.m_Angle < pi*-128 && Player.m_Angle > pi*128)
 		Prev.m_Angle += 2*pi*256;
@@ -358,7 +358,7 @@ void CPlayers::RenderPlayer(
 		{
 			// TODO: should be an animation
 			Recoil = 0;
-			static float s_LastIntraTick = IntraTick;
+			static int s_LastIntraTick = IntraTick;
 			if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
 				s_LastIntraTick = IntraTick;
 
