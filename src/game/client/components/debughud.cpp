@@ -73,11 +73,136 @@ void CDebugHud::RenderNetCorrections()
 	TextRender()->Text(0, x-w, y, Fontsize, m_pClient->NetobjFailedOn(), -1);
 }
 
+
+void CDebugHud::MakeButton(CUIRect Area, const char* pStr, float x, float y, float w, float h)
+{
+	CUIRect Button = {Area.x + x, Area.y + y, w, h};
+	// Area.VSplitLeft(w, &Button, &Area);
+	// Area.HSplitTop(h, &Button, &Area);
+	RenderTools()->DrawUIRect(&Button, vec4(0.9f, 0.9f, 0.9f, 0.66f) , CUI::CORNER_ALL, 4.0f);
+  	TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
+	TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
+	Button.y += Button.h/2-4.0f;
+	UI()->DoLabel(&Button, pStr, 6.0f, CUI::ALIGN_CENTER);
+}
+
+void CDebugHud::MakeLabel(CUIRect Area, const char* pStr, float x, float y, float w, float h)
+{
+	CUIRect Label = {Area.x + x, Area.y + y, w, h};
+  	TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
+	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+	UI()->DoLabel(&Label, pStr, 6.0f, CUI::ALIGN_CENTER);
+}
+
 void CDebugHud::RenderTuning()
 {
 	// render tuning debugging
 	if(!g_Config.m_DbgTuning)
+	{
+		const float Height = 300.0f;
+		const float Width = Height*Graphics()->ScreenAspect();
+		Graphics()->MapScreen(0.0f, 0.0f, Width, Height);
+
+		CUIRect Area;
+		Area.x = Width/6.f;
+		Area.y = Height-70.0f;
+		Area.w = 4*Width/6.f;
+		Area.h = 50.f;
+		RenderTools()->DrawUIRect(&Area, vec4(0.0f, 0.0f, 0.0f, 0.5f) , CUI::CORNER_ALL, 5.0f);
+		
+		Area.HMargin(10.0f, &Area);
+		Area.VMargin(10.0f, &Area);
+
+		const float ButtonSize = 12.0f;
+		const float Spacing = ButtonSize+1.0f;
+		float x = 10.f;
+		float y = 10.f;
+
+		MakeLabel(Area, Localize("Move"), x, y+Spacing, Spacing*2);
+		MakeButton(Area, "Q", x, y);
+		// x += Spacing;
+		// MakeButton(Area, "Z", x, y-Spacing);
+		x += Spacing;
+		MakeButton(Area, "D", x, y);
+
+		x+= Spacing*2;
+
+		MakeButton(Area, "Space", x, y, ButtonSize*2.f);
+		MakeLabel(Area, Localize("Jump"), x, y+Spacing, 2*ButtonSize);
+		x+= ButtonSize*3;
+
+		x+= Spacing;
+
+		MakeLabel(Area, Localize("Change weapon"), x, y+Spacing, Spacing*5);
+		MakeButton(Area, "1", x, y);
+		x += Spacing;
+		MakeButton(Area, "2", x, y);
+		x += Spacing;
+		MakeButton(Area, "3", x, y);
+		x += Spacing;
+		MakeButton(Area, "4", x, y);
+		x += Spacing;
+		MakeButton(Area, "5", x, y);
+		x += Spacing;
+
+		x+= Spacing;
+
+		// const vec4 CRCWhite(1, 1, 1, 0.25);
+		// const vec4 CRCTeam(0.4, 1, 0.4, 0.4);
+		// const vec4 CRCWhisper(0, 0.5, 1, 0.5);
+
+
+		MakeLabel(Area, Localize("Chat"), x, y+Spacing, Spacing*3);
+		{
+			CUIRect Button = {Area.x + x, Area.y + y-Spacing, 12.f, 12.f};
+			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_EMOTICONS].m_Id);
+			Graphics()->QuadsBegin();
+			RenderTools()->SelectSprite(SPRITE_DOTDOT);
+			IGraphics::CQuadItem QuadItem(Button.x, Button.y, Button.w, Button.h);
+			Graphics()->SetColor(1, 1, 1, 0.25);
+			Graphics()->QuadsDrawTL(&QuadItem, 1);
+			Graphics()->QuadsEnd();
+		}
+		MakeButton(Area, "T", x, y);
+		x += Spacing;			
+		// MakeLabel(Area, Localize("Team"), x, y-Spacing, Spacing);
+		{
+			CUIRect Button = {Area.x + x, Area.y + y-Spacing, 12.f, 12.f};
+			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_EMOTICONS].m_Id);
+			Graphics()->QuadsBegin();
+			RenderTools()->SelectSprite(SPRITE_DOTDOT);
+			IGraphics::CQuadItem QuadItem(Button.x, Button.y, Button.w, Button.h);
+			Graphics()->SetColor(0.4, 1, 0.4, 0.4);
+			Graphics()->QuadsDrawTL(&QuadItem, 1);
+			Graphics()->QuadsEnd();
+		}
+		MakeButton(Area, "Y", x, y);
+		x += Spacing;
+		// MakeLabel(Area, Localize("Whisper"), x, y-Spacing, Spacing);
+		{
+			CUIRect Button = {Area.x + x, Area.y + y-Spacing, 12.f, 12.f};
+			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CHATWHISPER].m_Id);
+			Graphics()->QuadsBegin();
+			Graphics()->QuadsSetSubset(1, 0, 0, 1);			// QuadIcon = IGraphics::CQuadItem(Area.x + x, Area.y + y+Spacing, 12.f, 12.f);
+			IGraphics::CQuadItem QuadItem(Button.x, Button.y+6.f, Button.w, Button.h/2.f);
+			Graphics()->SetColor(0, 0.5, 1, 0.5);
+			Graphics()->QuadsDrawTL(&QuadItem, 1);
+			Graphics()->QuadsEnd();
+		}
+
+		MakeButton(Area, "X", x, y);
+		x += Spacing;
+
+		x += Spacing;
+
+		MakeLabel(Area, Localize("Menu"), x, y+Spacing, Spacing);
+		MakeButton(Area, "Esc", x, y);
+		x += Spacing;
+		
+  		TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
+		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 		return;
+	}
 
 	CTuningParams StandardTuning;
 

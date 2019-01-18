@@ -156,7 +156,7 @@ int CInput::Update()
 	int i = SDL_GetMouseState(NULL, NULL);
 	if(i&SDL_BUTTON(1)) m_aInputState[KEY_MOUSE_1] = 1; // 1 is left
 	if(i&SDL_BUTTON(3)) m_aInputState[KEY_MOUSE_2] = 1; // 3 is right
-	if(i&SDL_BUTTON(2)) m_aInputState[KEY_MOUSE_3] = 1; // 2 is middle
+	if(i&SDL_BUTTON(2)) {m_aInputState[KEY_MOUSE_3] = 1; dbg_msg("input", "middle"); } // 2 is middle
 	if(i&SDL_BUTTON(4)) m_aInputState[KEY_MOUSE_4] = 1;
 	if(i&SDL_BUTTON(5)) m_aInputState[KEY_MOUSE_5] = 1;
 	if(i&SDL_BUTTON(6)) m_aInputState[KEY_MOUSE_6] = 1;
