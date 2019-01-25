@@ -10,8 +10,9 @@ class CDebugHud : public CComponent
 	void RenderTuning();
 public:
 	virtual void OnRender();
-	void MakeButton(CUIRect Area, const char* pStr, float x, float y, float w = 12.f, float h = 12.f);
+	void MakeKeyButton(CUIRect Area, /*const char* pStr,*/ int Key, bool DynamicWidth = false, float w = 12.f, float h = 12.f);
 	void MakeLabel(CUIRect Area, const char* pStr, float x, float y, float w = 50.f, float h = 12.f);
+	void MakeIcon(CUIRect Area, int ImageId, int SpriteId, float x, float y, vec2 Size, vec4 Color=vec4(1, 1, 1, 0.25));
 };
 
 #endif

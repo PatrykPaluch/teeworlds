@@ -3,6 +3,8 @@
 #include <engine/shared/config.h>
 #include <engine/graphics.h>
 #include <engine/textrender.h>
+#include <engine/input.h>
+#include <engine/keys.h>
 
 #include <generated/protocol.h>
 #include <generated/client_data.h>
@@ -74,16 +76,46 @@ void CDebugHud::RenderNetCorrections()
 }
 
 
-void CDebugHud::MakeButton(CUIRect Area, const char* pStr, float x, float y, float w, float h)
+void CDebugHud::MakeKeyButton(CUIRect Area, int Key, bool DynamicWidth, float w, float h)
 {
-	CUIRect Button = {Area.x + x, Area.y + y, w, h};
-	// Area.VSplitLeft(w, &Button, &Area);
-	// Area.HSplitTop(h, &Button, &Area);
-	RenderTools()->DrawUIRect(&Button, vec4(0.9f, 0.9f, 0.9f, 0.66f) , CUI::CORNER_ALL, 4.0f);
-  	TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
-	TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
-	Button.y += Button.h/2-4.0f;
-	UI()->DoLabel(&Button, pStr, 6.0f, CUI::ALIGN_CENTER);
+	if(Key == KEY_MOUSE_1)
+	{
+		CUIRect Button = {Area.x+w/8.f, Area.y+h, w, h};
+		MakeIcon(Button, IMAGE_MOUSEICONS, SPRITE_MOUSE1, 0, 0, vec2(3.f*w/4.f, h));
+	}
+	else if(Key == KEY_MOUSE_2)
+	{
+		CUIRect Button = {Area.x+w/8.f, Area.y+h, w, h};
+		MakeIcon(Button, IMAGE_MOUSEICONS, SPRITE_MOUSE2, 0, 0, vec2(3.f*w/4.f, h));
+	}
+	else
+	{
+		CUIRect Button = {Area.x, Area.y, w, h};
+		if(DynamicWidth && Key == KEY_SPACE) // extend key size for space
+		{
+			Button.x -= Button.w/2.f;
+			Button.w *= 2.f;
+		}
+		
+		if(Input()->KeyIsPressed(Key))
+		{
+			RenderTools()->DrawUIRect(&Button, vec4(0.3f, 0.3f, 0.3f, 0.66f) , CUI::CORNER_ALL, 4.0f);
+		  	TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.25f);
+			TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		else
+		{
+			RenderTools()->DrawUIRect(&Button, vec4(0.9f, 0.9f, 0.9f, 0.66f) , CUI::CORNER_ALL, 4.0f);
+		  	TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 0.25f);
+			TextRender()->TextColor(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+		Button.y += Button.h/2-4.0f;
+
+		char aBuf[8];
+		str_format(aBuf, DynamicWidth ? 8 : 4, Input()->KeyName(Key)); // truncate to 3 chars if no dynamic width
+		aBuf[0] = str_uppercase(aBuf[0]);
+		UI()->DoLabel(&Button, aBuf, 6.0f, CUI::ALIGN_CENTER);
+	}
 }
 
 void CDebugHud::MakeLabel(CUIRect Area, const char* pStr, float x, float y, float w, float h)
@@ -94,19 +126,49 @@ void CDebugHud::MakeLabel(CUIRect Area, const char* pStr, float x, float y, floa
 	UI()->DoLabel(&Label, pStr, 6.0f, CUI::ALIGN_CENTER);
 }
 
+void CDebugHud::MakeIcon(CUIRect Area, int ImageId, int SpriteId, float x, float y, vec2 Size, vec4 Color)
+{
+	CUIRect Icon = {Area.x + x, Area.y + y - Size.y, Size.x, Size.y};
+	if(true)
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[ImageId].m_Id);
+		Graphics()->QuadsBegin();
+		if(SpriteId != -1)
+			RenderTools()->SelectSprite(SpriteId);
+		else
+			Graphics()->QuadsSetSubset(1, 0, 0, 1);
+		IGraphics::CQuadItem QuadItem(Icon.x, Icon.y, Icon.w, Icon.h);
+		Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+		Graphics()->QuadsDrawTL(&QuadItem, 1);
+	}
+	else
+	{
+		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
+		Graphics()->QuadsBegin();
+		RenderTools()->SelectSprite(SPRITE_WEAPON_SHOTGUN_PROJ);
+		IGraphics::CQuadItem QuadItem(Icon.x, Icon.y, 8.f, 8.f);
+		Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+		Graphics()->QuadsDrawTL(&QuadItem, 1);
+	}
+	Graphics()->QuadsEnd();
+}
+
 void CDebugHud::RenderTuning()
 {
 	// render tuning debugging
 	if(!g_Config.m_DbgTuning)
 	{
+		// const int Mode = 0; // original
+		const int Mode = 1; // alternative
+
 		const float Height = 300.0f;
 		const float Width = Height*Graphics()->ScreenAspect();
 		Graphics()->MapScreen(0.0f, 0.0f, Width, Height);
 
 		CUIRect Area;
-		Area.x = Width/6.f;
+		Area.x = Width/8.f;
 		Area.y = Height-70.0f;
-		Area.w = 4*Width/6.f;
+		Area.w = 6*Width/8.f;
 		Area.h = 50.f;
 		RenderTools()->DrawUIRect(&Area, vec4(0.0f, 0.0f, 0.0f, 0.5f) , CUI::CORNER_ALL, 5.0f);
 		
@@ -115,89 +177,95 @@ void CDebugHud::RenderTuning()
 
 		const float ButtonSize = 12.0f;
 		const float Spacing = ButtonSize+1.0f;
-		float x = 10.f;
-		float y = 10.f;
+		Area.x += 10.f;
+		Area.y += 10.f;
 
-		MakeLabel(Area, Localize("Move"), x, y+Spacing, Spacing*2);
-		MakeButton(Area, "Q", x, y);
-		// x += Spacing;
-		// MakeButton(Area, "Z", x, y-Spacing);
-		x += Spacing;
-		MakeButton(Area, "D", x, y);
+		MakeLabel(Area, Localize("Move"), 0, Spacing, Spacing*2);
+		MakeKeyButton(Area, KEY_A);
+		Area.x += Spacing;
+		MakeKeyButton(Area, KEY_D);
+		Area.x += Spacing;
 
-		x+= Spacing*2;
+		Area.x += Spacing/2;
 
-		MakeButton(Area, "Space", x, y, ButtonSize*2.f);
-		MakeLabel(Area, Localize("Jump"), x, y+Spacing, 2*ButtonSize);
-		x+= ButtonSize*3;
+		Area.x += Spacing/2;
+		MakeKeyButton(Area, KEY_SPACE, true);
+		MakeLabel(Area, Localize("Jump"), 0, Spacing, Spacing);
+		Area.x += Spacing;
 
-		x+= Spacing;
+		Area.x += Spacing;
 
-		MakeLabel(Area, Localize("Change weapon"), x, y+Spacing, Spacing*5);
-		MakeButton(Area, "1", x, y);
-		x += Spacing;
-		MakeButton(Area, "2", x, y);
-		x += Spacing;
-		MakeButton(Area, "3", x, y);
-		x += Spacing;
-		MakeButton(Area, "4", x, y);
-		x += Spacing;
-		MakeButton(Area, "5", x, y);
-		x += Spacing;
+		MakeLabel(Area, Localize("Fire & Hook"), 0, Spacing, Spacing*2);
+		MakeKeyButton(Area, KEY_MOUSE_1);
+		Area.x += Spacing;
+		MakeKeyButton(Area, KEY_MOUSE_2);
+		Area.x += Spacing;
 
-		x+= Spacing;
+		Area.x += Spacing/2;
 
-		// const vec4 CRCWhite(1, 1, 1, 0.25);
-		// const vec4 CRCTeam(0.4, 1, 0.4, 0.4);
-		// const vec4 CRCWhisper(0, 0.5, 1, 0.5);
-
-
-		MakeLabel(Area, Localize("Chat"), x, y+Spacing, Spacing*3);
+		MakeLabel(Area, Localize("Change weapon"), 0, Spacing, Spacing*5);
+		if(Mode == 0)
 		{
-			CUIRect Button = {Area.x + x, Area.y + y-Spacing, 12.f, 12.f};
-			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_EMOTICONS].m_Id);
-			Graphics()->QuadsBegin();
-			RenderTools()->SelectSprite(SPRITE_DOTDOT);
-			IGraphics::CQuadItem QuadItem(Button.x, Button.y, Button.w, Button.h);
-			Graphics()->SetColor(1, 1, 1, 0.25);
-			Graphics()->QuadsDrawTL(&QuadItem, 1);
-			Graphics()->QuadsEnd();
+			MakeKeyButton(Area, KEY_1);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_HAMMER_BODY, 0, -1, vec2(4, 3)*3.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_2);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_GUN_BODY, 0, -2, vec2(4, 2)*3.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_3);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_SHOTGUN_BODY, -1, -3, vec2(8, 2)*2.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_4);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_GRENADE_BODY, 0, -3, vec2(7, 2)*2.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_5);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_LASER_BODY, 0, -2, vec2(7, 3)*2.f);
+			Area.x += Spacing;
 		}
-		MakeButton(Area, "T", x, y);
-		x += Spacing;			
-		// MakeLabel(Area, Localize("Team"), x, y-Spacing, Spacing);
+		else
 		{
-			CUIRect Button = {Area.x + x, Area.y + y-Spacing, 12.f, 12.f};
-			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_EMOTICONS].m_Id);
-			Graphics()->QuadsBegin();
-			RenderTools()->SelectSprite(SPRITE_DOTDOT);
-			IGraphics::CQuadItem QuadItem(Button.x, Button.y, Button.w, Button.h);
-			Graphics()->SetColor(0.4, 1, 0.4, 0.4);
-			Graphics()->QuadsDrawTL(&QuadItem, 1);
-			Graphics()->QuadsEnd();
-		}
-		MakeButton(Area, "Y", x, y);
-		x += Spacing;
-		// MakeLabel(Area, Localize("Whisper"), x, y-Spacing, Spacing);
-		{
-			CUIRect Button = {Area.x + x, Area.y + y-Spacing, 12.f, 12.f};
-			Graphics()->TextureSet(g_pData->m_aImages[IMAGE_CHATWHISPER].m_Id);
-			Graphics()->QuadsBegin();
-			Graphics()->QuadsSetSubset(1, 0, 0, 1);			// QuadIcon = IGraphics::CQuadItem(Area.x + x, Area.y + y+Spacing, 12.f, 12.f);
-			IGraphics::CQuadItem QuadItem(Button.x, Button.y+6.f, Button.w, Button.h/2.f);
-			Graphics()->SetColor(0, 0.5, 1, 0.5);
-			Graphics()->QuadsDrawTL(&QuadItem, 1);
-			Graphics()->QuadsEnd();
+			MakeKeyButton(Area, KEY_1);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_HAMMER_CURSOR, 2, -2, vec2(2, 2)*4.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_2);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_GUN_CURSOR, 2, -2, vec2(2, 2)*4.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_3);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_SHOTGUN_CURSOR, 2, -2, vec2(2, 2)*4.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_4);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_GRENADE_CURSOR, 2, -2, vec2(2, 2)*4.f);
+			Area.x += Spacing;
+			MakeKeyButton(Area, KEY_5);
+			MakeIcon(Area, IMAGE_GAME, SPRITE_WEAPON_LASER_CURSOR, 2, -2, vec2(2, 2)*4.f);
+			Area.x += Spacing;
 		}
 
-		MakeButton(Area, "X", x, y);
-		x += Spacing;
+		Area.x += Spacing;
 
-		x += Spacing;
+		const vec4 CRCWhite(1, 1, 1, 0.25);
+		const vec4 CRCTeam(0.4, 1, 0.4, 0.4);
+		const vec4 CRCWhisper(0, 0.5, 1, 0.5);
 
-		MakeLabel(Area, Localize("Menu"), x, y+Spacing, Spacing);
-		MakeButton(Area, "Esc", x, y);
-		x += Spacing;
+		MakeLabel(Area, Localize("Chat"), 0, Spacing, Spacing*3);
+		MakeIcon(Area, IMAGE_EMOTICONS, SPRITE_DOTDOT, 1, -2, vec2(10.f, 10.f), CRCWhite);
+		MakeKeyButton(Area, KEY_T);
+		Area.x += Spacing;	
+		MakeIcon(Area, IMAGE_EMOTICONS, SPRITE_DOTDOT, 1, -2, vec2(10.f, 10.f), CRCTeam);
+		MakeKeyButton(Area, KEY_Y);
+		Area.x += Spacing;
+		if(Mode == 0)
+			MakeIcon(Area, IMAGE_CHATWHISPER, -1, 1, -3, vec2(12.f, 6.f), CRCWhisper);
+		else
+			MakeIcon(Area, IMAGE_EMOTICONS, SPRITE_DOTDOT, 1, -2, vec2(10.f, 10.f), CRCWhisper);
+		MakeKeyButton(Area, KEY_X);
+		Area.x += Spacing;
+
+		Area.x += Spacing;
+
+		MakeLabel(Area, Localize("Menu"), 0, Spacing, Spacing);
+		MakeKeyButton(Area, KEY_ESCAPE);
+		Area.x += Spacing;
 		
   		TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
 		TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
