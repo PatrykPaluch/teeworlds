@@ -554,11 +554,15 @@ void CCharacter::ResetInput()
 		m_Input.m_Fire++;
 	m_Input.m_Fire &= INPUT_STATE_MASK;
 	m_Input.m_Jump = 0;
+	m_Input.m_Super = false;
 	m_LatestPrevInput = m_LatestInput = m_Input;
+	
 }
 
 void CCharacter::Tick()
 {
+	m_Input.m_Super = m_pPlayer->m_Super; //It probably shouldn't be here
+
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
 
@@ -581,21 +585,18 @@ void CCharacter::Tick()
 		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	}
 	// handle freeze tiles
-	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_FREEZE ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_FREEZE ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_FREEZE ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_FREEZE)
+	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_FREEZE)
 	{
 		Freeze();
 	}
-	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_UNFREEZE ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_UNFREEZE ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_UNFREEZE ||
-		GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_UNFREEZE)
+	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x, m_Pos.y)&CCollision::COLFLAG_UNFREEZE)
 	{
 		Unfreeze();
 	}
 
+	if(!IsFrozen() && IsGrounded()){
+		m_LastUnfreezedPos = m_pPlayer->m_ViewPos;
+	}
 	// handle Weapons
 	HandleWeapons();
 }
@@ -747,6 +748,10 @@ void CCharacter::Die(int Killer, int Weapon)
 
 void CCharacter::Freeze()
 {
+
+	if(m_pPlayer->m_Super)
+		return;
+
 	// this is for auto unfreeze after 3 secs
 	m_pPlayer->m_FreezeTick = Server()->Tick();
 
@@ -767,6 +772,34 @@ void CCharacter::Freeze()
 
 	// switch to ninja
 	GiveNinja();
+}
+
+void CCharacter::SetSuper(bool super){
+	if(m_pPlayer->m_Super == super) return;
+
+	m_pPlayer->m_Super = super;
+
+	if(m_Frozen)
+		Unfreeze();
+}
+
+//returns:
+// 1 - not freezed
+// 2 - not grounded
+// 3 - too fast
+int CCharacter::Tp2LastUnfreezedPos(){
+	if(!IsFrozen()) return 1;
+	if(!IsGrounded()) return 2;
+	if(m_LastRescueTime+Server()->TickSpeed()*g_Config.m_SvRescueCooldown >= Server()->Tick()){
+		return 3;
+	}
+	SetPos(m_LastUnfreezedPos);
+	m_LastRescueTime = Server()->Tick();
+	//Unfreeze();
+	return 0;
+}
+int CCharacter::GetLastRescueTime(){
+	return m_LastRescueTime;
 }
 
 void CCharacter::FreezeIndicator(unsigned Amount)
