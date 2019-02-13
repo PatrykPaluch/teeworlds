@@ -83,6 +83,7 @@ Objects = [
 		NetIntRange("m_WantedWeapon", 0, 'NUM_WEAPONS-1'),
 		NetIntAny("m_NextWeapon"),
 		NetIntAny("m_PrevWeapon"),
+		NetBool("m_Super"),
 	]),
 
 	NetObject("Projectile", [
