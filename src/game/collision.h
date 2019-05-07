@@ -40,7 +40,6 @@ class CCollision
 
 	void InitTeleporter();
 
-	bool IsTileSolid(int x, int y) const;
 	bool IsTile(int x, int y, int Flag=COLFLAG_SOLID) const;
 	int GetTile(int x, int y) const;
 
