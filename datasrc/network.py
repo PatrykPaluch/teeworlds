@@ -87,6 +87,7 @@ Objects = [
 		NetBool("m_Jump"),
 		NetIntAny("m_Fire"),
 		NetBool("m_Hook"),
+		NetBool("m_Super"),
 
 		NetFlag("m_PlayerFlags", PlayerFlags),
 
