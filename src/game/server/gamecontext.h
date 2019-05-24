@@ -73,6 +73,11 @@ class CGameContext : public IGameServer
 	static void ConTeleport(IConsole::IResult *pResult, void *pUserData);
 	static void ConTeleportTo(IConsole::IResult *pResult, void *pUserData);
 	static void ConGetPos(IConsole::IResult *pResult, void *pUserData);
+	//p
+	static void ConMove(IConsole::IResult *pResult, void *pUserData);
+	static void ConTp(IConsole::IResult *pResult, void *pUserData);
+	static void ConSuper(IConsole::IResult *pResult, void *pUserData);
+	static void ChatConRescue(IConsole::IResult *pResult, void *pUserData);
 
 	static void SendChatResponse(const char *pLine, void *pUser, bool Highlighted);
 	static void ChatConInfo(IConsole::IResult *pResult, void *pUser);

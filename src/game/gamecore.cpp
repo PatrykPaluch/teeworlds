@@ -73,6 +73,7 @@ void CCharacterCore::Reset()
 	m_HookState = HOOK_IDLE;
 	m_HookedPlayer = -1;
 	m_Jumped = 0;
+	m_super = 0;
 	m_TriggeredEvents = 0;
 	m_Race.m_LastSpeedupTilePos = ivec2(-1,-1);
 	m_Death = false;
@@ -107,6 +108,8 @@ void CCharacterCore::Tick(bool UseInput)
 		// handle jump
 		if(m_Input.m_Jump)
 		{
+		
+
 			if(!(m_Jumped&1))
 			{
 				if(Grounded)
@@ -121,6 +124,9 @@ void CCharacterCore::Tick(bool UseInput)
 					m_Vel.y = -m_pWorld->m_Tuning.m_AirJumpImpulse;
 					m_Jumped |= 3;
 				}
+			}
+			if(m_Input.m_Super){
+				m_Jumped = 0;
 			}
 		}
 		else
@@ -285,7 +291,8 @@ void CCharacterCore::Tick(bool UseInput)
 		}
 
 		// release hook (max hook time is 1.25
-		m_HookTick++;
+		// super player have infinite hook time
+		if(!m_Input.m_Super) m_HookTick++;
 		if(m_HookedPlayer != -1 && (m_HookTick > SERVER_TICK_SPEED+SERVER_TICK_SPEED/5 || !m_pWorld->m_apCharacters[m_HookedPlayer]))
 		{
 			m_HookedPlayer = -1;

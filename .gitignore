@@ -1,4 +1,5 @@
 /.bam
+/.vscode
 /bam
 /build
 /config.lua

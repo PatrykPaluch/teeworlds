@@ -7,6 +7,7 @@
 
 #include <game/gamecore.h>
 #include <game/server/entity.h>
+#include <game/server/player.h>
 
 
 class CCharacter : public CEntity
@@ -58,14 +59,20 @@ public:
 
 	void Freeze();
 	void Unfreeze();
+	int Tp2LastUnfreezedPos();
+
+	int GetLastRescueTime();
+
+	void SetSuper(bool super);
 
 	bool IsAlive() const { return m_Alive; }
 	bool IsFrozen() const { return m_Frozen; }
+	bool IsSuper() const { return m_pPlayer->m_Super; }
 
 	void GetCustomTuning(CTuningParams* Tuning) const;
 	bool RequiresCustomTuning() const;
 
-	class CPlayer *GetPlayer() { return m_pPlayer; }
+	CPlayer *GetPlayer() { return m_pPlayer; }
 
 	void SetActiveWeapon(int Weapon) { m_ActiveWeapon = Weapon; }
 	bool HasWeapon(int Weapon) const { return m_aWeapons[Weapon].m_Got; }
@@ -78,7 +85,7 @@ public:
 
 private:
 	// player controlling this character
-	class CPlayer *m_pPlayer;
+	CPlayer *m_pPlayer;
 
 	bool m_Alive;
 
@@ -124,6 +131,9 @@ private:
 	int m_Armor;
 
 	int m_TriggeredEvents;
+
+	vec2 m_LastUnfreezedPos;
+	int m_LastRescueTime;
 
 	// ninja
 	struct

@@ -84,6 +84,8 @@ public:
 	int m_LastKill;
 	int m_LastReadyChange;
 
+	bool m_Super;
+
 	// TODO: clean this up
 	struct
 	{

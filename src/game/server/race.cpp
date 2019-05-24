@@ -63,6 +63,62 @@ void CGameContext::ConGetPos(IConsole::IResult *pResult, void *pUserData)
 	}
 }
 
+//========= admin super (god mode)
+//inf jump, inf hook time, no freeze
+void CGameContext::ConSuper(IConsole::IResult *pResult, void *pUserData){
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	int CID = pResult->GetInteger(0);
+	if(pSelf->m_apPlayers[CID]){
+		pSelf->GetPlayerChar(CID)->SetSuper( !pSelf->GetPlayerChar(CID)->IsSuper() );
+	}
+}
+
+//========= admin move
+void CGameContext::ConMove(IConsole::IResult *pResult, void *pUser)
+{
+	CGameContext *pSelf = (CGameContext *)pUser;
+
+	int CID = pResult->GetInteger(0);
+
+	int dir = pResult->GetInteger(1);
+	if(pSelf->m_apPlayers[CID])
+	{
+		CCharacter* pChr = pSelf->GetPlayerChar(CID);
+		vec2 MvPos = pSelf->m_apPlayers[CID]->m_ViewPos;
+		switch(dir){
+			case 1: MvPos.y -= 32; break;
+			case 2: MvPos.x += 32; break;
+			case 3: MvPos.y += 32; break;
+			case 4: MvPos.x -= 32; break;
+		}
+		pChr->SetPos(MvPos);
+	}
+}
+
+//======== rescue 
+void CGameContext::ChatConRescue(IConsole::IResult *pResult, void *pUser){
+	CGameContext *pSelf = (CGameContext *)pUser;
+
+	if(!g_Config.m_SvRescue){
+		pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "Rescue is not allowed on this server");
+		return;
+	}
+
+	int CID = pSelf->m_ChatConsoleClientID;
+	if(!pSelf->GetPlayerChar(CID)) return;
+	switch( pSelf->GetPlayerChar(CID)->Tp2LastUnfreezedPos() ){
+		case 1: pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "You are not freezed"); break;
+		case 2: pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "You are not grounded"); break;
+		case 3: 
+			int timeToRescue = pSelf->GetPlayerChar(CID)->GetLastRescueTime() + pSelf->Server()->TickSpeed()*g_Config.m_SvRescueCooldown;
+			timeToRescue -= pSelf->Server()->Tick();
+			timeToRescue /= pSelf->Server()->TickSpeed();
+			char aBuf[128];
+			str_format(aBuf, sizeof(aBuf), "You need to wait before use it (%ds)", timeToRescue);
+			pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", aBuf);
+			break;
+	}
+}
 void CGameContext::ChatConInfo(IConsole::IResult *pResult, void *pUser)
 {
 	CGameContext *pSelf = (CGameContext *)pUser;
@@ -122,6 +178,7 @@ void CGameContext::ChatConHelp(IConsole::IResult *pResult, void *pUser)
 	pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "\"/rank\" shows your rank");
 	pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "\"/rank NAME\" shows the rank of a specific player");
 	pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "\"/top5 X\" shows the top 5");
+	pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "\"/r\" or \"/rescue\" teleports you to last unfreezed position");
 	// pSelf->m_pChatConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "chat", "\"/show_others\" show other players?");
 }
 
@@ -140,6 +197,9 @@ void CGameContext::InitChatConsole()
 	m_pChatConsole->Register("rank", "?r", CFGFLAG_SERVERCHAT, ChatConRank, this, "");
 	// m_pChatConsole->Register("show_others", "", CFGFLAG_SERVERCHAT, ChatConShowOthers, this, "");
 	m_pChatConsole->Register("help", "", CFGFLAG_SERVERCHAT, ChatConHelp, this, "");
+	m_pChatConsole->Register("rescue", "", CFGFLAG_SERVERCHAT, ChatConRescue, this, "");
+	m_pChatConsole->Register("r", "", CFGFLAG_SERVERCHAT, ChatConRescue, this, "");
+
 }
 
 void CGameContext::SendChatResponse(const char *pLine, void *pUser, bool Highlighted)
